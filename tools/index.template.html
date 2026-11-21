@@ -91,8 +91,35 @@ main{max-width:640px;margin:0 auto;padding:4px max(16px,env(safe-area-inset-left
 
 /* ===== 島図 ===== */
 .map-tools{display:grid;gap:8px;position:sticky;top:60px;z-index:5;background:var(--md-sys-color-surface);padding:8px 0}
-.dayctl{display:none;align-items:center;gap:10px}
-.dayctl.on{display:flex}
+.daypanel{display:none;gap:6px}
+.daypanel.on{display:grid}
+.dayctl{display:flex;align-items:center;gap:4px}
+.daybtn{flex:1;min-width:0;height:44px;border:1px solid var(--md-sys-color-outline-variant);border-radius:var(--r-m);background:var(--md-sys-color-surface-container-low);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-size:15px;font-weight:500}
+.daybtn small{font-family:var(--font-num);font-size:12px;font-weight:400;color:var(--md-sys-color-on-surface-variant)}
+.icon-btn:disabled{opacity:.38;cursor:default}
+.daystrip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 4px;scroll-snap-type:x proximity}
+.daystrip::-webkit-scrollbar{display:none}
+.dchip{flex:none;width:52px;border:1px solid var(--md-sys-color-outline-variant);border-radius:var(--r-m);background:transparent;padding:4px 0 6px;display:grid;justify-items:center;gap:1px;cursor:pointer;scroll-snap-align:center;position:relative}
+.dchip b{font-family:var(--font-num);font-size:14px;font-weight:500}
+.dchip span{font-size:11px;color:var(--md-sys-color-on-surface-variant)}
+.dchip i{width:28px;height:4px;border-radius:2px;margin-top:2px}
+.dchip.gap{margin-left:14px}
+.dchip.gap::before{content:"";position:absolute;left:-10px;top:8px;bottom:8px;border-left:2px dotted var(--md-sys-color-outline-variant)}
+.dchip[aria-pressed="true"]{background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container);border-color:transparent}
+.dchip[aria-pressed="true"] span{color:inherit}
+.cal{margin-top:12px}
+.cal h3{font-size:14px;font-weight:500;margin:16px 0 6px}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.calgrid .wd{font-size:11px;text-align:center;color:var(--md-sys-color-on-surface-variant)}
+.calgrid button,.calgrid .off{aspect-ratio:1/1.05;border:0;border-radius:var(--r-s);display:grid;place-items:center;align-content:center;gap:0;font-family:var(--font-num);line-height:1.1}
+.calgrid button{cursor:pointer;font-size:14px;font-weight:500}
+.calgrid button small{font-size:9px;font-weight:400}
+.calgrid .off{font-size:13px;color:var(--md-sys-color-outline-variant)}
+.calgrid button[aria-pressed="true"]{box-shadow:0 0 0 3px var(--md-sys-color-on-surface)}
+.warnbadge{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;background:var(--md-sys-color-error-container);color:var(--md-sys-color-error);flex:none}
+.warnbadge .ms{width:15px;height:15px}
+.cell b{display:inline-flex;align-items:center;gap:5px}
+.mini button .warnbadge{margin-left:-2px}
 input[type=range]{flex:1;accent-color:var(--md-sys-color-primary);height:32px;margin:0}
 .legend{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--md-sys-color-on-surface-variant)}
 .legend .bar{flex:1;height:8px;border-radius:var(--r-full)}
@@ -197,12 +224,16 @@ __SPRITE__
         <button type="button" data-mode="d30" aria-pressed="false"><svg class="ms"><use href="#i-check"/></svg>30日</button>
         <button type="button" data-mode="day" aria-pressed="false"><svg class="ms"><use href="#i-check"/></svg>日別</button>
       </div>
-      <div class="dayctl" id="dayctl">
-        <label for="daypick" aria-label="日付"><svg class="ms" aria-hidden="true"><use href="#i-calendar_month"/></svg></label>
-        <input type="range" id="daypick" min="0" max="0" step="1">
-        <span class="num" id="daylabel" style="font-size:13px;min-width:7.5em;text-align:right"></span>
+      <div class="daypanel" id="dayctl">
+        <div class="dayctl">
+          <button class="icon-btn" type="button" id="dayPrev" aria-label="前の日"><svg class="ms" aria-hidden="true"><use href="#i-chevron_left"/></svg></button>
+          <button class="daybtn" type="button" id="dayOpen" aria-label="カレンダーから日付を選ぶ"><svg class="ms" aria-hidden="true"><use href="#i-calendar_month"/></svg><span id="daylabel"></span><small id="dayavg"></small></button>
+          <button class="icon-btn" type="button" id="dayNext" aria-label="次の日"><svg class="ms" aria-hidden="true"><use href="#i-chevron_right"/></svg></button>
+        </div>
+        <div class="daystrip" id="daystrip" aria-label="日付"></div>
       </div>
       <div class="legend"><span id="legLo"></span><div class="bar" id="legBar"></div><span id="legHi"></span><span class="exkey" id="exKey" title="狙わない台"></span><span id="exKeyLabel">狙わない</span></div>
+      <div class="legend" id="warnLegend"><span class="warnbadge"><svg class="ms" aria-hidden="true"><use href="#i-warning-fill"/></svg></span><span id="warnLegendText"></span></div>
     </div>
     <div class="floor" id="floor"></div>
     <p class="support" id="modeNote" style="margin:0"></p>
@@ -253,7 +284,7 @@ __SPRITE__
     <div class="card">
       <h2>狙い度の決め方</h2>
       <h3>狙わない台</h3>
-      <p>前日の差枚が+3000枚を超えた台は、据え置き・上げを狙わない方針で、候補から外しています。</p>
+      <p>前日の差枚が+3000枚を超えた台は、据え置き・上げを狙わない方針で、候補から外しています。島図や一覧では⚠マークを付けています。</p>
       <h3>1〜3台を打つとき</h3>
       <p>slot-eye「狙い方別平均（過去90日）」に当てはめた期待機械割の順位と、直近7日の平均回転数が少ない順位を、同じ重みで足しています。</p>
       <h3>5台以上を押さえるとき</h3>
@@ -343,6 +374,9 @@ const sum=(u,n)=>U(u).diff.slice(-n).reduce((a,b)=>a+(b??0),0);
 const sc=u=>wide?U(u).v4:U(u).v3;
 const rk=u=>wide?U(u).rank4:U(u).rank3;
 const prev=u=>U(u).diff[N-1]??0;
+const WARN=3000;
+const hot=u=>prev(u)>=WARN;   // 前日+3000枚以上 = 据え置き・上げは狙わない
+const badge=()=>`<span class="warnbadge" title="前日+${WARN.toLocaleString()}枚以上">${icon("warning-fill")}</span>`;
 const scoreT=u=>{ const xs=UNITS.filter(x=>!U(x).excluded).map(x=>Math.abs(sc(x))); return sc(u)/Math.max(...xs); };
 function where(u){ const [L,R]=D.columns; const i=L.indexOf(u); const j=R.indexOf(u);
   return i>=0?`781側の列・手前から${i+1}台目`:`756側の列・手前から${j+1}台目`; }
@@ -363,13 +397,13 @@ function renderPicks(){
   const box=$("picks"); box.innerHTML="";
   o.slice(0,nMain+2).forEach((u,i)=>{ const c=heatColor(scoreT(u));
     const b=document.createElement("button"); b.type="button"; b.className="pick"+(i<nMain?" main":"");
-    b.innerHTML=`<span class="rank">${i+1}</span><span><span class="unit">${u}</span><span class="where">${where(u)}</span><span class="reasons">${reasons(u)}</span></span><span class="heatdot" style="background:${c.bg}"></span>`;
+    b.innerHTML=`<span class="rank">${i+1}</span><span><span class="unit">${hot(u)?badge()+" ":""}${u}</span><span class="where">${where(u)}</span><span class="reasons">${reasons(u)}</span></span><span class="heatdot" style="background:${c.bg}"></span>`;
     b.setAttribute("aria-label",`${i+1}位 ${u}番 ${where(u)}`); b.addEventListener("click",()=>openUnit(u)); box.appendChild(b); });
   const mini=(list,el,fn)=>{ el.innerHTML=""; list.forEach(u=>{ const b=document.createElement("button"); b.type="button"; b.innerHTML=fn(u); b.addEventListener("click",()=>openUnit(u)); el.appendChild(b); }); };
-  mini(o.slice(-5).reverse(),$("avoid"),u=>`${u}<small>${rk(u)}位</small>`);
+  mini(o.slice(-5).reverse(),$("avoid"),u=>`${hot(u)?badge():""}${u}<small>${rk(u)}位</small>`);
   const ex=UNITS.filter(u=>U(u).excluded).sort((a,b)=>prev(b)-prev(a));
   $("exNote").textContent=`前日+${D.excludeThreshold.toLocaleString()}枚超・${ex.length}台`;
-  mini(ex,$("exList"),u=>`${u}<small>前日${kfmt(prev(u))}</small>`);
+  mini(ex,$("exList"),u=>`${hot(u)?badge():""}${u}<small>前日${kfmt(prev(u))}</small>`);
   if(!ex.length) $("exList").innerHTML=`<span class="support">該当なし</span>`;
   // 今日の状況
   const now=new Date(), td=now.getDate()%10, wd=now.getDay();
@@ -392,12 +426,15 @@ const MODES={
 function renderFloor(){
   const f=$("floor"); f.innerHTML=""; const M=MODES[mode]; const [L,R]=D.columns; const n=Math.max(L.length,R.length);
   const showEx=mode==="rank";
+  const wIdx=mode==="day"?dayIdx-1:N-1;   // ⚠の基準日：日別なら選んだ日の前日、それ以外は最新日
+  const hotHere=u=>wIdx>=0&&(U(u).diff[wIdx]??0)>=WARN;
   f.insertAdjacentHTML("beforeend",`<div class="frow head"><span>781〜815</span><span></span><span>756〜780</span></div>`);
   const cell=u=>{ const b=document.createElement("button"); b.type="button"; b.className="cell";
     if(!D.units[u]){ b.disabled=true; b.innerHTML=`<b>${u}</b><span>—</span>`; return b; }
-    if(showEx&&U(u).excluded){ b.classList.add("ex"); b.innerHTML=`<b>${u}</b><span>狙わない</span>`; }
-    else { const c=heatColor(M.t(u)); b.style.background=c.bg; b.style.color=c.ink; b.innerHTML=`<b>${u}</b><span>${M.txt(u)}</span>`; }
-    b.setAttribute("aria-pressed",sel===u?"true":"false"); b.setAttribute("aria-label",`${u}番 ${b.textContent.slice(String(u).length)}`);
+    const w=hotHere(u)?badge():"";
+    if(showEx&&U(u).excluded){ b.classList.add("ex"); b.innerHTML=`<b>${w}${u}</b><span>狙わない</span>`; }
+    else { const c=heatColor(M.t(u)); b.style.background=c.bg; b.style.color=c.ink; b.innerHTML=`<b>${w}${u}</b><span>${M.txt(u)}</span>`; }
+    b.setAttribute("aria-pressed",sel===u?"true":"false"); b.setAttribute("aria-label",`${u}番 ${b.textContent.slice(String(u).length)}${hotHere(u)?" 危険：前日+"+WARN+"枚以上":""}`);
     b.addEventListener("click",()=>openUnit(u)); return b; };
   for(let i=n-1;i>=0;i--){ const r=document.createElement("div"); r.className="frow";
     r.appendChild(L[i]?cell(L[i]):document.createElement("span"));
@@ -408,6 +445,8 @@ function renderFloor(){
   $("legBar").style.background=`linear-gradient(90deg,${css("--heat-cold")},${css("--heat-mid")},${css("--heat-hot")})`;
   $("exKey").style.display=$("exKeyLabel").style.display=showEx?"":"none";
   $("modeNote").textContent=M.note();
+  $("warnLegend").style.display=wIdx>=0?"":"none";
+  $("warnLegendText").textContent=wIdx>=0?(mode==="day"?`前日（${fmtDate(D.days[wIdx])}）に+${WARN.toLocaleString()}枚以上だった台`:`前日（${fmtDate(D.asof)}）+${WARN.toLocaleString()}枚以上。据え置き・上げは狙わない`):"";
   document.querySelectorAll("#segMode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.mode===mode?"true":"false"));
   $("dayctl").classList.toggle("on",mode==="day");
 }
@@ -424,7 +463,7 @@ const closeBtn=`<button class="icon-btn" type="button" aria-label="閉じる" da
 function openUnit(u){
   sel=u; if(document.querySelector("#v-map.on")) renderFloor(); const x=U(u); const g1=x.g[N-1];
   const why=x.why.length?x.why.map(w=>`<li>${w[0]}：${w[1].toFixed(1)}%</li>`).join(""):"<li>当てはまる条件なし</li>";
-  const status=x.excluded?`<span class="tag warn">${icon("block")}狙わない</span>`:`<span class="tag">1〜3台用 ${x.rank3}位</span><span class="tag">5台以上用 ${x.rank4}位</span>`;
+  const status=(hot(u)?`<span class="tag warn">${icon("warning-fill")}前日+${WARN.toLocaleString()}枚以上</span>`:"")+(x.excluded?`<span class="tag warn">${icon("block")}狙わない</span>`:`<span class="tag">1〜3台用 ${x.rank3}位</span><span class="tag">5台以上用 ${x.rank4}位</span>`);
   openSheet(`<div class="sheet-head"><div class="grow"><div class="big" id="sheetTitle">${u}番</div><div class="sub">${icon("location_on")}${where(u)}</div></div>${closeBtn}</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">${status}</div>
     ${x.excluded?`<div class="banner warn" style="margin-top:12px">${icon("warning")}<span>前日 ${sgn(prev(u))}枚。前日+${D.excludeThreshold.toLocaleString()}枚超の台は、据え置き・上げを狙わない方針で候補から外しています。</span></div>`:""}
@@ -489,7 +528,7 @@ function renderCharts(){
   drawBars($("dayChart"),vals,days,{h:180,bw:range==="30"?0:9,fit:range==="30",gaps,avg,readout:"dayReadout",
     xlabel:i=>{const d=+days[i].split("-")[2];return (i===0||d===1||d===10||d===20||i===days.length-1)?fmtDate(days[i]):"";},
     fmt:(d,v)=>`${fmtDate(d)}（${WD[new Date(d).getDay()]}） 全台平均 ${sgn(v)}枚`,
-    onClick:i=>{ dayIdx=from+i; $("daypick").value=dayIdx; dayLabel(); mode="day"; location.hash="#map"; }});
+    onClick:i=>{ setDay(from+i); mode="day"; location.hash="#map"; }});
   { const b=$("dayChart").parentElement; b.scrollLeft=b.scrollWidth; }
   $("dayReadout").textContent="強かった日："+D.days.map((d,i)=>[d,D.dayAvg[i]]).sort((a,b)=>b[1]-a[1]).slice(0,4).map(x=>fmtDate(x[0])+" "+sgn(x[1])).join("、");
   document.querySelectorAll("#segRange button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.range===range?"true":"false"));
@@ -504,27 +543,50 @@ function renderCharts(){
     fmt:(d,v,i)=>`${WD[i]}曜（${wdg[i].length}日分）：全台平均 ${sgn(v)}枚`});
   $("wdNote").textContent=`今日は${WD[wd]}曜：平均 ${sgn(wv[wd])}枚（${wdg[wd].length}日分）。`;
 }
-function dayLabel(){ $("daylabel").textContent=`${fmtDate(D.days[dayIdx])}（${WD[new Date(D.days[dayIdx]).getDay()]}）`; }
+function dayLabel(){ $("daylabel").textContent=`${fmtDate(D.days[dayIdx])}（${WD[new Date(D.days[dayIdx]).getDay()]}）`;
+  $("dayavg").textContent=`全台 ${kfmt(D.dayAvg[dayIdx])}`; $("dayPrev").disabled=dayIdx<=0; $("dayNext").disabled=dayIdx>=N-1;
+  document.querySelectorAll(".dchip").forEach(c=>c.setAttribute("aria-pressed",+c.dataset.i===dayIdx?"true":"false")); }
+function setDay(i,scroll=true){ dayIdx=Math.max(0,Math.min(N-1,i)); dayLabel(); if(D&&document.querySelector("#v-map.on")) renderFloor();
+  if(scroll){ const c=document.querySelector(`.dchip[data-i="${dayIdx}"]`); c&&c.scrollIntoView({block:"nearest",inline:"center",behavior:"smooth"}); } }
+const dayHeat=v=>heatColor(v/3000).bg;
+function buildStrip(){ const st=$("daystrip"); st.innerHTML="";
+  D.days.forEach((d,i)=>{ const gap=i>0&&(new Date(d)-new Date(D.days[i-1]))/864e5>2; const b=document.createElement("button"); b.type="button";
+    b.className="dchip"+(gap?" gap":""); b.dataset.i=i; b.setAttribute("aria-label",`${fmtDate(d)} 全台平均 ${sgn(D.dayAvg[i])}枚`);
+    b.innerHTML=`<b>${fmtDate(d)}</b><span>${WD[new Date(d).getDay()]}</span><i style="background:${dayHeat(D.dayAvg[i])}"></i>`;
+    b.addEventListener("click",()=>setDay(i)); st.appendChild(b); }); }
+function openCalendar(){
+  const byMonth={}; D.days.forEach((d,i)=>{ const k=d.slice(0,7); (byMonth[k]=byMonth[k]||{})[+d.slice(8)]=i; });
+  let html=`<div class="sheet-head"><div class="grow"><div style="font-size:22px;font-weight:500" id="sheetTitle">日付を選ぶ</div><div class="sub">色はその日の全台平均差枚（赤＝出た日、青＝出なかった日）</div></div>${closeBtn}</div><div class="cal">`;
+  Object.keys(byMonth).sort().reverse().forEach(k=>{ const [y,m]=k.split("-").map(Number); const first=new Date(y,m-1,1).getDay(); const last=new Date(y,m,0).getDate();
+    html+=`<h3>${y}年${m}月</h3><div class="calgrid">`+WD.split("").map(w=>`<span class="wd">${w}</span>`).join("")+"<span></span>".repeat(first);
+    for(let d=1;d<=last;d++){ const i=byMonth[k][d];
+      if(i==null) html+=`<span class="off">${d}</span>`;
+      else { const c=heatColor(D.dayAvg[i]/3000); html+=`<button type="button" data-i="${i}" aria-pressed="${i===dayIdx}" aria-label="${m}/${d} 全台平均 ${sgn(D.dayAvg[i])}枚" style="background:${c.bg};color:${c.ink}">${d}<small>${kfmt(D.dayAvg[i])}</small></button>`; } }
+    html+="</div>"; });
+  openSheet(html+"</div>");
+  document.querySelectorAll(".calgrid button").forEach(b=>b.addEventListener("click",()=>{ closeSheet(); setDay(+b.dataset.i); }));
+}
 
 /* ---------- 画面切り替え ---------- */
 const VIEWS=["picks","map","trend","about"];
 function route(){ const v=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):"picks";
   VIEWS.forEach(x=>$("v-"+x).classList.toggle("on",x===v));
   document.querySelectorAll(".navbar a").forEach(a=>{ if(a.dataset.view===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
-  if(D){ if(v==="map") renderFloor(); if(v==="trend") renderCharts(); }
+  if(D){ if(v==="map"){ renderFloor(); if(mode==="day") setTimeout(()=>setDay(dayIdx),50); } if(v==="trend") renderCharts(); }
   window.scrollTo(0,0); }
 window.addEventListener("hashchange",route);
 function renderAll(){ renderPicks(); renderFloor(); if(document.querySelector("#v-trend.on")) renderCharts(); }
 
 window.addEventListener("scroll",()=>$("appbar").classList.toggle("scrolled",scrollY>4),{passive:true});
 document.querySelectorAll("#segCount button").forEach(b=>b.addEventListener("click",()=>{ wide=b.dataset.wide==="1"; store.set("kb-wide",wide?"1":"0"); renderAll(); }));
-document.querySelectorAll("#segMode button").forEach(b=>b.addEventListener("click",()=>{ mode=b.dataset.mode; renderFloor(); }));
+document.querySelectorAll("#segMode button").forEach(b=>b.addEventListener("click",()=>{ mode=b.dataset.mode; renderFloor(); if(mode==="day") setTimeout(()=>setDay(dayIdx),0); }));
 document.querySelectorAll("#segRange button").forEach(b=>b.addEventListener("click",()=>{ range=b.dataset.range; renderCharts(); }));
 
 applyTheme(); route();
 fetch("data.json",{cache:"no-cache"}).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); }).then(d=>{
   D=d; N=D.days.length; UNITS=Object.keys(D.units); dayIdx=N-1;
-  const dp=$("daypick"); dp.max=N-1; dp.value=N-1; dayLabel(); dp.addEventListener("input",()=>{ dayIdx=+dp.value; dayLabel(); renderFloor(); });
+  buildStrip(); dayLabel();
+  $("dayPrev").addEventListener("click",()=>setDay(dayIdx-1)); $("dayNext").addEventListener("click",()=>setDay(dayIdx+1)); $("dayOpen").addEventListener("click",openCalendar);
   const next=new Date(D.asof); next.setDate(next.getDate()+1);
   $("subtitle").textContent=`麻生ハッピー・スマスロ③｜${fmtDate(D.asof)}までの${N}日分`;
   $("bannerText").textContent=`${fmtDate(D.asof)}までのデータから出した、${next.getMonth()+1}/${next.getDate()}以降向けの順位です。新しい日のデータが入ると変わります。過去の傾向で、結果を保証するものではありません。`;

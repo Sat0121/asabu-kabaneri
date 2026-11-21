@@ -7,12 +7,14 @@
   python3 picker.py kabaneri_history.txt              # 1〜3台狙い向け(v3)
   python3 picker.py kabaneri_history.txt --wide       # 5台以上を押さえる場合(v4)
   python3 picker.py kabaneri_history.txt --backtest   # 区間ごとのウォークフォワード検証
+  前日+3000枚超の台は、どちらのモデルでも候補から外す。
 """
 import csv, math, argparse, statistics as st
 from collections import defaultdict
 from datetime import date
 
 GCAP = 10000
+EXCLUDE_PREV = 3000   # 前日の差枚がこれを超えた台は狙わない(据え置き・上げは狙わない方針)
 BASE = 101.6
 _ = None
 T = {
@@ -169,6 +171,18 @@ def hybrid(data, hist, wide=False):
         sc = {u: a[u] + .5*b.get(u,0) + .5*m[u] - .5*pl[u] for u in a}
     return sc, ts, g7, kuse, why
 
+def excluded(data, hist, u):
+    """前日+3000枚超の台は候補から外す"""
+    y = data[hist[0]]
+    return u in y and y[u]["diff"] > EXCLUDE_PREV
+
+def ranking(data, hist, wide=False):
+    """(狙う台の順位リスト, 除外した台のリスト, スコア)"""
+    sc = hybrid(data, hist, wide)[0]
+    ok = sorted([u for u in sc if not excluded(data, hist, u)], key=lambda u: -sc[u])
+    ex = sorted([u for u in sc if excluded(data, hist, u)], key=lambda u: -data[hist[0]][u]["diff"])
+    return ok, ex, sc
+
 def contiguous(days_sorted):
     """最新日から空白(2日以上の欠け)なく続く区間"""
     out = [days_sorted[-1]]
@@ -197,10 +211,10 @@ def backtest(data, wide=False, start=9):
         if len(seg) <= start + 1: continue
         tops = {1: [], 3: [], 5: []}; rho = []
         for i in range(start, len(seg)):
-            t = seg[i]; sc = hybrid(data, seg[:i][::-1], wide)[0]
+            t = seg[i]; ok, ex, sc = ranking(data, seg[:i][::-1], wide)
             us = [u for u in sc if u in data[t]]; avg = st.mean(data[t][u]["diff"] for u in us)
-            o = sorted(us, key=lambda u: -sc[u])
-            rho.append(spearman([sc[u] for u in us], [data[t][u]["diff"] for u in us]))
+            o = [u for u in ok if u in data[t]]
+            rho.append(spearman([sc[u] for u in o], [data[t][u]["diff"] for u in o]))
             for k in tops: tops[k].append(st.mean(data[t][u]["diff"] for u in o[:k]) - avg)
         print(f"検証 {seg[start]}〜{seg[-1]} ({len(rho)}日)  順位相関 {st.mean(rho):+.3f}")
         for k, v in tops.items():
@@ -213,13 +227,15 @@ def main():
     if a.backtest: return backtest(data, a.wide)
     days = contiguous(sorted(data))
     sc, ts, g7, kuse, why = hybrid(data, days, a.wide)
-    rows = sorted(sc, key=lambda u: -sc[u])
+    rows, ex, _ = ranking(data, days, a.wide)
     print(f"# 前日={days[0]} の翌日向け (使用{len(days)}日)")
     print("| 順位 | 台 | 総合 | 表の期待割 | 7日平均G | 連続(−/+) | 表の主な根拠 |\n|---|---|---|---|---|---|---|")
     for i, u in enumerate(rows, 1):
         w = " / ".join(f"{n} {r:.1f}" for n, r in why[u]) or "-"
         m, pl = streaks(data, days, u)
         print(f"| {i} | {u} | {sc[u]:+.2f} | {ts[u]:.1f}% | {g7[u]:.0f} | {m}/{pl} | {w} |")
+    if ex:
+        print(f"\n除外(前日+{EXCLUDE_PREV}枚超・据え置き/上げは狙わない): " + "、".join(f"{u}({data[days[0]][u]['diff']:+d})" for u in ex))
 
 if __name__ == "__main__":
     main()

@@ -13,19 +13,23 @@ hist = p.contiguous(days)                 # 最新日から空白なく続く区
 v3, ts, g7, _, why = p.hybrid(data, hist, wide=False)
 v4 = p.hybrid(data, hist, wide=True)[0]
 units = sorted(v3, key=p.num)
-r3 = sorted(units, key=lambda u: -v3[u]); r4 = sorted(units, key=lambda u: -v4[u])
+r3, ex, _ = p.ranking(data, hist, wide=False)   # 前日+3000枚超は除外済みの順位
+r4, _, _ = p.ranking(data, hist, wide=True)
 out = {
   "asof": str(days[-1]),
   "days": [str(d) for d in days],
   "dayAvg": [round(st.mean(v["diff"] for v in data[d].values())) for d in days],
   "columns": p.COLUMNS,
+  "excludeThreshold": p.EXCLUDE_PREV,
+  "candidates": len(r3),
   "units": {}
 }
 for u in units:
     m, pl = p.streaks(data, hist, u)
     out["units"][u] = {
-      "v3": round(v3[u], 3), "rank3": r3.index(u) + 1,
-      "v4": round(v4[u], 3), "rank4": r4.index(u) + 1,
+      "v3": round(v3[u], 3), "rank3": (r3.index(u) + 1) if u in r3 else None,
+      "v4": round(v4[u], 3), "rank4": (r4.index(u) + 1) if u in r4 else None,
+      "excluded": u in ex,
       "table": round(ts[u], 1), "g7": round(g7[u]), "minus": m, "plus": pl,
       "why": [[n, r] for n, r in why[u]],
       "diff": [data[d][u]["diff"] if u in data[d] else None for d in days],
@@ -33,4 +37,4 @@ for u in units:
     }
 (ROOT / "data.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 print("data.json を更新:", out["asof"], f"{len(days)}日 / {len(units)}台")
-print("v3 上位5:", r3[:5], " v4 上位5:", r4[:5])
+print("v3 上位5:", r3[:5], " v4 上位5:", r4[:5], " 除外:", ex)

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f8f9ff">
+<title>カバネリ海門決戦 島ヒートマップ｜麻生ハッピー</title>
+<meta name="description" content="麻生ハッピー カバネリ海門決戦（スマスロ③）の台別データを島図のヒートマップで表示。翌日の狙い台と避けたい台。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Material Design 3（Material You）。色はすべて --md-sys-color-* トークン。JSが選んだ色(シード)から明暗両方の配色を生成して上書きする。
+   下の値は生成前の初期表示用（シード #2c638b のライト配色） */
+:root{
+  --md-sys-color-primary:#2c638b; --md-sys-color-on-primary:#ffffff;
+  --md-sys-color-primary-container:#cce5ff; --md-sys-color-on-primary-container:#001e31;
+  --md-sys-color-secondary-container:#d6e4f7; --md-sys-color-on-secondary-container:#0f1d2a;
+  --md-sys-color-tertiary-container:#ecdcff; --md-sys-color-on-tertiary-container:#251431;
+  --md-sys-color-surface:#f7f9ff; --md-sys-color-on-surface:#181c20; --md-sys-color-on-surface-variant:#41474e;
+  --md-sys-color-surface-container-lowest:#ffffff; --md-sys-color-surface-container-low:#f1f4f9;
+  --md-sys-color-surface-container:#ebeef3; --md-sys-color-surface-container-high:#e5e8ee; --md-sys-color-surface-container-highest:#e0e3e8;
+  --md-sys-color-outline:#72787e; --md-sys-color-outline-variant:#c1c7ce;
+  --md-sys-color-inverse-surface:#2d3135; --md-sys-color-inverse-on-surface:#eef1f6;
+  --heat-hot:#d93a4c; --heat-cold:#2f6fdb; --heat-mid:#e0e3e8;
+  --font-body:"Noto Sans JP","Hiragino Sans",system-ui,sans-serif;
+  --font-num:"Roboto Mono",ui-monospace,monospace;
+  --shape-xs:4px; --shape-s:8px; --shape-m:12px; --shape-l:16px; --shape-xl:28px; --shape-full:999px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--md-sys-color-surface);color:var(--md-sys-color-on-surface);font-family:var(--font-body);font-size:15px;line-height:1.55;-webkit-text-size-adjust:100%}
+.ms{width:24px;height:24px;fill:currentColor;flex:none;display:inline-block;vertical-align:middle}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--md-sys-color-primary);outline-offset:2px}
+
+/* Top app bar */
+.appbar{position:sticky;top:0;z-index:20;background:var(--md-sys-color-surface);padding:calc(8px + env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) 8px max(8px,env(safe-area-inset-left));display:flex;align-items:center;gap:4px;transition:background-color .2s}
+.appbar.scrolled{background:var(--md-sys-color-surface-container)}
+.appbar .titles{flex:1;min-width:0;padding-left:8px}
+.appbar h1{font-size:20px;font-weight:500;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.appbar p{margin:0;font-size:12px;color:var(--md-sys-color-on-surface-variant)}
+.icon-btn{width:48px;height:48px;border:0;border-radius:var(--shape-full);background:transparent;color:var(--md-sys-color-on-surface-variant);display:grid;place-items:center;cursor:pointer;position:relative}
+.icon-btn:hover{background:color-mix(in srgb,var(--md-sys-color-on-surface-variant) 8%,transparent)}
+
+main>*{min-width:0}
+main{max-width:840px;margin:0 auto;padding:8px max(16px,env(safe-area-inset-left)) calc(32px + env(safe-area-inset-bottom));display:grid;gap:16px}
+
+/* Cards */
+.card{border-radius:var(--shape-m);padding:16px;background:var(--md-sys-color-surface-container-low)}
+.card.filled{background:var(--md-sys-color-surface-container-highest)}
+.card h2{font-size:16px;font-weight:500;margin:0 0 4px;text-wrap:balance}
+.card .support{font-size:13px;color:var(--md-sys-color-on-surface-variant);margin:0 0 12px}
+.hero{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);border-radius:var(--shape-xl);padding:20px}
+.hero h2{font-size:14px;font-weight:500;margin:0 0 10px;letter-spacing:.02em;opacity:.9}
+.hero .lead{font-size:12px;margin:12px 0 0;opacity:.85}
+.banner{background:var(--md-sys-color-tertiary-container);color:var(--md-sys-color-on-tertiary-container);border-radius:var(--shape-m);padding:12px 16px;display:flex;gap:12px;align-items:flex-start;font-size:13px}
+
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{height:32px;border-radius:var(--shape-s);border:1px solid var(--md-sys-color-outline-variant);background:transparent;color:inherit;font:inherit;font-size:14px;font-weight:500;padding:0 12px 0 8px;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.hero .chip{border-color:color-mix(in srgb,var(--md-sys-color-on-primary-container) 30%,transparent)}
+.chip .sw{width:14px;height:14px;border-radius:50%}
+.chip small{font-weight:400;opacity:.8;font-size:12px}
+.tag{display:inline-flex;align-items:center;gap:2px;font-size:11px;border-radius:var(--shape-xs);padding:1px 6px;background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container);font-weight:500}
+
+/* Segmented button */
+.segs{display:flex;overflow-x:auto;scrollbar-width:none;margin:0 -16px 12px;padding:0 16px}
+.segs::-webkit-scrollbar{display:none}
+.seg{display:inline-flex;border:1px solid var(--md-sys-color-outline);border-radius:var(--shape-full);overflow:hidden;flex:none}
+.seg button{border:0;border-left:1px solid var(--md-sys-color-outline);background:transparent;color:var(--md-sys-color-on-surface);font:inherit;font-size:13px;font-weight:500;height:40px;padding:0 14px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
+.seg button:first-child{border-left:0}
+.seg button .ms{width:18px;height:18px;display:none}
+.seg button[aria-pressed="true"]{background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container)}
+.seg button[aria-pressed="true"] .ms{display:inline-block}
+
+/* Slider */
+.dayctl{display:none;align-items:center;gap:12px;margin:-4px 0 12px}
+.dayctl.on{display:flex}
+input[type=range]{flex:1;accent-color:var(--md-sys-color-primary);height:32px}
+
+/* Island map */
+.floor{display:grid;gap:4px}
+.frow{display:grid;grid-template-columns:1fr 40px 1fr;gap:4px}
+.frow.head{font-size:12px;color:var(--md-sys-color-on-surface-variant);text-align:center;align-items:end}
+.aisle{border-radius:var(--shape-xs);background:var(--md-sys-color-surface-container);display:grid;place-items:center;font-size:11px;color:var(--md-sys-color-on-surface-variant)}
+.head .aisle{background:transparent}
+.cell{border:0;border-radius:var(--shape-s);min-height:40px;padding:4px 12px;display:flex;align-items:center;justify-content:space-between;gap:6px;font:inherit;cursor:pointer;position:relative;transition:transform .12s, box-shadow .12s}
+.cell b{font-family:var(--font-num);font-size:15px;font-weight:500}
+.cell span{font-family:var(--font-num);font-size:13px}
+.cell .flag{position:absolute;top:3px;left:3px;width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.75}
+.cell[aria-pressed="true"]{box-shadow:0 0 0 3px var(--md-sys-color-on-surface)}
+.cell:active{transform:scale(.98)}
+.legend{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--md-sys-color-on-surface-variant);margin-top:12px}
+.legend .bar{flex:1;max-width:280px;height:8px;border-radius:var(--shape-full)}
+.foot-note{font-size:12px;color:var(--md-sys-color-on-surface-variant);margin:8px 0 0}
+
+/* Charts */
+.chartbox{overflow-x:auto;margin:0 -4px}
+svg text{fill:var(--md-sys-color-on-surface-variant);font-family:var(--font-num);font-size:10px}
+.readout{font-size:13px;min-height:1.6em;color:var(--md-sys-color-on-surface-variant);margin-top:4px}
+
+/* Tables / method */
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:8px 6px;border-bottom:1px solid var(--md-sys-color-outline-variant);text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:500;color:var(--md-sys-color-on-surface-variant)}
+details summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;font-weight:500;font-size:16px}
+details summary::-webkit-details-marker{display:none}
+details[open] summary .ms{transform:rotate(180deg)}
+.sheet:not(.open){visibility:hidden;transition:transform .28s cubic-bezier(.2,0,0,1),visibility 0s .28s}
+.method p{font-size:13px;color:var(--md-sys-color-on-surface-variant)}
+.method h3{font-size:14px;font-weight:500;margin:16px 0 6px}
+
+/* Bottom sheet & scrim */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.32);opacity:0;pointer-events:none;transition:opacity .2s;z-index:40}
+.scrim.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:50;margin:0 auto;max-width:640px;max-height:88%;overflow-y:auto;background:var(--md-sys-color-surface-container-low);border-radius:var(--shape-xl) var(--shape-xl) 0 0;padding:8px 20px calc(24px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .28s cubic-bezier(.2,0,0,1)}
+.sheet.open{transform:none}
+.handle{width:32px;height:4px;border-radius:2px;background:var(--md-sys-color-on-surface-variant);opacity:.4;margin:8px auto 12px}
+.sheet-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sheet-head .big{font-family:var(--font-num);font-size:32px;font-weight:500}
+.sheet-head .icon-btn{margin-left:auto}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:12px 0}
+.kv div{background:var(--md-sys-color-surface-container-high);border-radius:var(--shape-m);padding:8px 12px}
+.kv dt{font-size:12px;color:var(--md-sys-color-on-surface-variant)}
+.kv dd{margin:0;font-family:var(--font-num);font-size:17px}
+ul.why{margin:6px 0 12px;padding-left:20px;font-size:13px}
+.swatches{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 16px}
+.swatch{width:48px;height:48px;border-radius:50%;border:0;cursor:pointer;position:relative}
+.swatch{display:grid;place-items:center;color:#fff}.swatch .ms{display:none}.swatch[aria-pressed="true"] .ms{display:block}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{height:40px;border-radius:var(--shape-full);border:1px solid var(--md-sys-color-outline);background:transparent;color:var(--md-sys-color-primary);font:inherit;font-weight:500;font-size:14px;padding:0 16px;display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+.btn[aria-pressed="true"]{background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container);border-color:transparent}
+.btn .ms{width:18px;height:18px}
+footer{font-size:12px;color:var(--md-sys-color-on-surface-variant);text-align:center;padding:8px 16px 24px}
+footer a{color:var(--md-sys-color-primary)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-info" viewBox="0 -960 960 960"><path d="M483.18-280q12.82 0 21.32-8.63 8.5-8.62 8.5-21.37v-180q0-12.75-8.68-21.38-8.67-8.62-21.5-8.62-12.82 0-21.32 8.62-8.5 8.63-8.5 21.38v180q0 12.75 8.68 21.37 8.67 8.63 21.5 8.63Zm-3.2-314q14.02 0 23.52-9.2T513-626q0-14.45-9.48-24.22-9.48-9.78-23.5-9.78t-23.52 9.78Q447-640.45 447-626q0 13.6 9.48 22.8 9.48 9.2 23.5 9.2Zm.29 514q-82.74 0-155.5-31.5Q252-143 197.5-197.5t-86-127.34Q80-397.68 80-480.5t31.5-155.66Q143-709 197.5-763t127.34-85.5Q397.68-880 480.5-880t155.66 31.5Q709-817 763-763t85.5 127Q880-563 880-480.27q0 82.74-31.5 155.5Q817-252 763-197.68q-54 54.31-127 86Q563-80 480.27-80Zm.23-60Q622-140 721-239.5t99-241Q820-622 721.19-721T480-820q-141 0-240.5 98.81T140-480q0 141 99.5 240.5t241 99.5Zm-.5-340Z"/></symbol><symbol id="i-palette" viewBox="0 -960 960 960"><path d="M480-80q-82 0-155-31.5t-127.5-86Q143-252 111.5-325T80-480q0-85 32-158t87.5-127q55.5-54 130-84.5T489-880q79 0 150 26.5T763.5-780q53.5 47 85 111.5T880-527q0 108-63 170.5T650-294h-75q-18 0-31 14t-13 31q0 27 14.5 46t14.5 44q0 38-21 58.5T480-80Zm0-400Zm-233 26q20 0 35-15t15-35q0-20-15-35t-35-15q-20 0-35 15t-15 35q0 20 15 35t35 15Zm126-170q20 0 35-15t15-35q0-20-15-35t-35-15q-20 0-35 15t-15 35q0 20 15 35t35 15Zm214 0q20 0 35-15t15-35q0-20-15-35t-35-15q-20 0-35 15t-15 35q0 20 15 35t35 15Zm131 170q20 0 35-15t15-35q0-20-15-35t-35-15q-20 0-35 15t-15 35q0 20 15 35t35 15ZM480-140q11 0 15.5-4.5T500-159q0-14-14.5-26T471-238q0-46 30-81t76-35h73q76 0 123-44.5T820-527q0-132-100-212.5T489-820q-146 0-247.5 98.5T140-480q0 141 99.5 240.5T480-140Z"/></symbol><symbol id="i-brightness_auto" viewBox="0 -960 960 960"><path d="M402-414h159l32 93q2 8 8.54 12 6.54 4 14.38 4 13.08 0 20.58-10.9 7.5-10.89 2.5-23.1L510-682q-2.24-7.11-8.2-11.05-5.97-3.95-12.68-3.95h-16.41q-6.71 0-12.6 3.95-5.9 3.94-8.11 11.05L323-339q-5 11.9 2 22.95Q332-305 345.54-305q8.46 0 15.54-4.95 7.09-4.95 9.92-13.05l31-91Zm15-48 61.29-163H483l62 163H417Zm-70.84 302H220q-24.75 0-42.37-17.63Q160-195.25 160-220v-125.59L68-438q-9-9-13-19.81-4-10.82-4-22Q51-491 55-502q4-11 13-20l92-92.41V-740q0-24.75 17.63-42.38Q195.25-800 220-800h125.59L438-892q9-9 20.5-13t22.7-4q11.19 0 22.02 4.7 10.82 4.69 19.78 13.3l91 91h126q24.75 0 42.38 17.62Q800-764.75 800-740v125.59L892-522q9 9 13 19.81 4 10.82 4 22 0 11.19-4 22.19-4 11-13 20l-92 92.41V-220q0 24.75-17.62 42.37Q764.75-160 740-160H614l-91 90q-8.96 8.13-19.78 12.57Q492.39-53 481.2-53q-11.2 0-22.16-4.43Q448.07-61.87 439-70l-92.84-90ZM370-220l111 107 107.92-107H740v-151l109-109-109-109v-151H589L481-849 371-740H220v151L111-480l109 109v151h150Zm111-261Z"/></symbol><symbol id="i-light_mode" viewBox="0 -960 960 960"><path d="M479.76-340Q538-340 579-380.76q41-40.77 41-99Q620-538 579.24-579q-40.77-41-99-41Q422-620 381-579.24q-41 40.77-41 99Q340-422 380.76-381q40.77 41 99 41Zm.24 60q-83 0-141.5-58.5T280-480q0-83 58.5-141.5T480-680q83 0 141.5 58.5T680-480q0 83-58.5 141.5T480-280ZM70-450q-12.75 0-21.37-8.68-8.63-8.67-8.63-21.5 0-12.82 8.63-21.32Q57.25-510 70-510h100q12.75 0 21.38 8.68 8.62 8.67 8.62 21.5 0 12.82-8.62 21.32-8.63 8.5-21.38 8.5H70Zm720 0q-12.75 0-21.37-8.68-8.63-8.67-8.63-21.5 0-12.82 8.63-21.32 8.62-8.5 21.37-8.5h100q12.75 0 21.38 8.68 8.62 8.67 8.62 21.5 0 12.82-8.62 21.32-8.63 8.5-21.38 8.5H790ZM479.82-760q-12.82 0-21.32-8.63-8.5-8.62-8.5-21.37v-100q0-12.75 8.68-21.38 8.67-8.62 21.5-8.62 12.82 0 21.32 8.62 8.5 8.63 8.5 21.38v100q0 12.75-8.68 21.37-8.67 8.63-21.5 8.63Zm0 720Q467-40 458.5-48.63 450-57.25 450-70v-100q0-12.75 8.68-21.38 8.67-8.62 21.5-8.62 12.82 0 21.32 8.62 8.5 8.63 8.5 21.38v100q0 12.75-8.68 21.37-8.67 8.63-21.5 8.63ZM240-678l-57-56q-9-9-8.63-21.6.37-12.61 8.53-21.5 8.89-8.9 21.5-8.9 12.6 0 21.6 9l56 57q8 9 8 21t-8 20.5q-8 8.5-20.5 8.5t-21.5-8Zm494 495-56-57q-8-9-8-21.38 0-12.37 8.5-20.62 8.5-9 20.5-9t21 9l57 56q9 9 8.63 21.6-.37 12.61-8.53 21.5-8.89 8.9-21.5 8.9-12.6 0-21.6-9Zm-56-495q-9-9-9-21t9-21l56-57q9-9 21.6-8.63 12.61.37 21.5 8.53 8.9 8.89 8.9 21.5 0 12.6-9 21.6l-57 56q-8 8-20.36 8-12.37 0-21.64-8ZM182.9-182.9q-8.9-8.89-8.9-21.5 0-12.6 9-21.6l57-56q8.8-9 20.9-9 12.1 0 20.71 9 9.39 9 9.39 21t-9 21l-56 57q-9 9-21.6 8.63-12.61-.37-21.5-8.53ZM480-480Z"/></symbol><symbol id="i-dark_mode" viewBox="0 -960 960 960"><path d="M480-120q-150 0-255-105T120-480q0-135 79.5-229T408-830q20-5 34-1t22 15q8 10 7.5 25t-8.5 35q-9 23-14 47t-5 49q0 90 63 153t153 63q25 0 48.5-4.5T754-461q22-8 38-7t26 9q10 8 13 23t-2 36q-27 121-121 200.5T480-120Zm0-60q109 0 190-67.5T771-406q-25 11-53.5 16.5T660-384q-115 0-195.5-80.5T384-660q0-24 5-51.5t18-62.5q-98 27-162.5 109.5T180-480q0 125 87.5 212.5T480-180Zm-4-297Z"/></symbol><symbol id="i-check" viewBox="0 -960 960 960"><path d="m378-332 363-363q9.27-9 21.64-9 12.36 0 21.36 9.05 9 9.06 9 21.5 0 12.45-9 21.45L399-267q-9 9-21 9t-21-9L175-449q-9-9.07-8.5-21.53.5-12.47 9.55-21.47 9.06-9 21.5-9 12.45 0 21.45 9l159 160Z"/></symbol><symbol id="i-close" viewBox="0 -960 960 960"><path d="M480-438 270-228q-9 9-21 9t-21-9q-9-9-9-21t9-21l210-210-210-210q-9-9-9-21t9-21q9-9 21-9t21 9l210 210 210-210q9-9 21-9t21 9q9 9 9 21t-9 21L522-480l210 210q9 9 9 21t-9 21q-9 9-21 9t-21-9L480-438Z"/></symbol><symbol id="i-warning" viewBox="0 -960 960 960"><path d="M92-120q-9 0-15.65-4.13Q69.7-128.25 66-135q-4.17-6.6-4.58-14.3Q61-157 66-165l388-670q5-8 11.5-11.5T480-850q8 0 14.5 3.5T506-835l388 670q5 8 4.58 15.7-.41 7.7-4.58 14.3-3.7 6.75-10.35 10.87Q877-120 868-120H92Zm52-60h672L480-760 144-180Zm340.18-57q12.82 0 21.32-8.68 8.5-8.67 8.5-21.5 0-12.82-8.68-21.32-8.67-8.5-21.5-8.5-12.82 0-21.32 8.68-8.5 8.67-8.5 21.5 0 12.82 8.68 21.32 8.67 8.5 21.5 8.5Zm0-111q12.82 0 21.32-8.63 8.5-8.62 8.5-21.37v-164q0-12.75-8.68-21.38-8.67-8.62-21.5-8.62-12.82 0-21.32 8.62-8.5 8.63-8.5 21.38v164q0 12.75 8.68 21.37 8.67 8.63 21.5 8.63ZM480-470Z"/></symbol><symbol id="i-calendar_month" viewBox="0 -960 960 960"><path d="M180-80q-24 0-42-18t-18-42v-620q0-24 18-42t42-18h65v-28q0-13.6 9.2-22.8 9.2-9.2 22.8-9.2 14.02 0 23.51 9.2Q310-861.6 310-848v28h340v-28q0-13.6 9.2-22.8 9.2-9.2 22.8-9.2 14.03 0 23.51 9.2Q715-861.6 715-848v28h65q24 0 42 18t18 42v620q0 24-18 42t-42 18H180Zm0-60h600v-430H180v430Zm0-490h600v-130H180v130Zm0 0v-130 130Zm300 230q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z"/></symbol><symbol id="i-expand_more" viewBox="0 -960 960 960"><path d="M480-356q-6 0-11-2t-10-7L261-563q-9-9-8.5-21.5T262-606q9-9 21.5-9t21.5 9l175 176 176-176q9-9 21-8.5t21 9.5q9 9 9 21.5t-9 21.5L501-365q-5 5-10 7t-11 2Z"/></symbol></svg>
+<header class="appbar" id="appbar">
+  <div class="titles">
+    <h1>カバネリ海門決戦 ヒートマップ</h1>
+    <p id="subtitle">麻生ハッピー・スマスロ③</p>
+  </div>
+  <button class="icon-btn" id="btnTheme" type="button" aria-label="明るさの切り替え"><svg class="ms" id="themeIcon" aria-hidden="true"><use href="#i-brightness_auto"/></svg></button>
+  <button class="icon-btn" id="btnPalette" type="button" aria-label="テーマカラーを選ぶ"><svg class="ms" aria-hidden="true"><use href="#i-palette"/></svg></button>
+</header>
+
+<main>
+  <div class="banner" id="banner"><svg class="ms" aria-hidden="true"><use href="#i-info"/></svg><span id="bannerText">データを読み込んでいます…</span></div>
+
+  <section class="hero" aria-label="狙い目">
+    <h2 id="heroTitle">本命（1〜3台を打つ場合）</h2>
+    <div class="chips" id="heroTop"></div>
+    <h2 style="margin-top:16px">避けたい台</h2>
+    <div class="chips" id="heroBottom"></div>
+    <p class="lead" id="heroLead"></p>
+  </section>
+
+  <section class="card" aria-label="島図">
+    <h2>島図（スマスロ③通路）</h2>
+    <p class="support">台をタップすると詳しいデータが開きます。</p>
+    <div class="segs"><div class="seg" role="group" aria-label="色分けの基準" id="segs">
+      <button type="button" data-mode="v3" aria-pressed="true"><svg class="ms" aria-hidden="true"><use href="#i-check"/></svg>狙い度 1〜3台</button>
+      <button type="button" data-mode="v4" aria-pressed="false"><svg class="ms" aria-hidden="true"><use href="#i-check"/></svg>狙い度 5台〜</button>
+      <button type="button" data-mode="d7" aria-pressed="false"><svg class="ms" aria-hidden="true"><use href="#i-check"/></svg>7日差枚</button>
+      <button type="button" data-mode="d30" aria-pressed="false"><svg class="ms" aria-hidden="true"><use href="#i-check"/></svg>30日差枚</button>
+      <button type="button" data-mode="day" aria-pressed="false"><svg class="ms" aria-hidden="true"><use href="#i-check"/></svg>日別</button>
+    </div></div>
+    <div class="dayctl" id="dayctl">
+      <label for="daypick" aria-label="日付"><svg class="ms" aria-hidden="true"><use href="#i-calendar_month"/></svg></label>
+      <input type="range" id="daypick" min="0" max="0" step="1">
+      <span class="num" id="daylabel" style="font-size:13px;min-width:8.5em"></span>
+    </div>
+    <div class="floor" id="floor"></div>
+    <div class="legend"><span id="legLo"></span><div class="bar" id="legBar"></div><span id="legHi"></span></div>
+    <p class="foot-note" id="modeNote"></p>
+  </section>
+
+  <section class="card" aria-label="店全体">
+    <h2>店全体の日別平均差枚</h2>
+    <p class="support">棒をタップすると、その日の島図に切り替わります。9/24〜10/19はデータがありません。</p>
+    <div class="chartbox"><svg id="dayChart" role="img" aria-label="日別平均差枚の棒グラフ"></svg></div>
+    <div class="readout num" id="dayReadout"></div>
+    <h2 style="margin-top:16px">日付の末尾ごとの平均差枚</h2>
+    <div class="chartbox"><svg id="tailChart" role="img" aria-label="日付末尾別の平均差枚"></svg></div>
+    <div class="readout" id="tailNote"></div>
+  </section>
+
+  <section class="card method">
+    <details>
+      <summary>狙い度の作り方と検証<svg class="ms" aria-hidden="true"><use href="#i-expand_more"/></svg></summary>
+      <p>狙い度は、slot-eye「狙い方別平均（過去90日）」に当てはめた期待機械割の順位と、直近7日の平均回転数が少ない順位を足したものです。回転数は1万G以上の日をデータなしとして扱っています（前日分の加算が疑われるため）。差枚は全日使っています。</p>
+      <h3>2つの狙い度</h3>
+      <p><b>1〜3台</b>：表＋直近7日の低稼働（等しい重み）。<br><b>5台〜</b>：表＋0.5×低稼働＋0.5×連続マイナス日数−0.5×連続プラス日数。</p>
+      <h3>過去日での成績（その日より前のデータだけで予測）</h3>
+      <table class="num">
+        <thead><tr><th>上位台の差枚（その日の全台平均との差）</th><th>9/3〜9/23</th><th>10/29〜11/20</th></tr></thead>
+        <tbody>
+          <tr><td>1〜3台用・上位1台</td><td>+782</td><td>+1092</td></tr>
+          <tr><td>1〜3台用・上位3台</td><td>+772</td><td>+1022</td></tr>
+          <tr><td>5台〜用・上位5台</td><td>+785</td><td>+831</td></tr>
+        </tbody>
+      </table>
+      <p>1台あたりの誤差は±700〜850枚あります。90日表は検証期間の結果も含んでいるため、実際の効き目はこれより小さめと考えてください。</p>
+      <h3>前日に大きく出た台の翌日</h3>
+      <table class="num">
+        <thead><tr><th>前日の差枚</th><th>8〜9月</th><th>10〜11月</th></tr></thead>
+        <tbody>
+          <tr><td>−2000〜0</td><td>+153</td><td>+52</td></tr>
+          <tr><td>+2000〜+5000</td><td>−21</td><td>−92</td></tr>
+          <tr><td>+5000〜+10000</td><td>−724</td><td>−223</td></tr>
+          <tr><td>+10000超（件数少）</td><td>+1920</td><td>−286</td></tr>
+        </tbody>
+      </table>
+      <p>島図で左上に点が付いている台は、前日+5000枚以上だった台です。</p>
+      <h3>機械学習での探索</h3>
+      <p>特徴量16個で100通りの組み合わせや勾配ブースティングも試しましたが、学習していない期間ではこの狙い度に負けました。データが数百日分に増えるまでは、単純な形のほうが当たります。</p>
+    </details>
+  </section>
+</main>
+<footer>データ：slot-eye 台別データ（差枚・回転数）／ <a href="https://github.com/Sat0121/asabu-kabaneri">GitHub</a><br>過去の傾向をまとめたもので、結果を保証するものではありません。</footer>
+
+<div class="scrim" id="scrim"></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-hidden="true">
+  <div class="handle"></div>
+  <div id="sheetBody"></div>
+</section>
+
+<script type="module">
+import {argbFromHex,hexFromArgb,Blend,SchemeTonalSpot,Hct,MaterialDynamicColors as MDC} from "./vendor/mcu.min.js";
+
+/* ---------- Material You テーマ ---------- */
+const SEEDS=[["#2c638b","ブルー"],["#8b5000","アンバー"],["#6750a4","パープル"],["#386a20","グリーン"],["#b3261e","レッド"],["#006a6a","ティール"]];
+const store={get(k,d){try{return localStorage.getItem(k)??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+let seed=store.get("kb-seed","#2c638b"), themeMode=store.get("kb-theme","auto");
+const mq=matchMedia("(prefers-color-scheme: dark)");
+const isDark=()=>themeMode==="dark"||(themeMode==="auto"&&mq.matches);
+const TOKENS=["primary","onPrimary","primaryContainer","onPrimaryContainer","secondaryContainer","onSecondaryContainer","tertiaryContainer","onTertiaryContainer",
+ "surface","onSurface","onSurfaceVariant","surfaceContainerLowest","surfaceContainerLow","surfaceContainer","surfaceContainerHigh","surfaceContainerHighest",
+ "outline","outlineVariant","inverseSurface","inverseOnSurface"];
+const kebab=s=>s.replace(/[A-Z]/g,m=>"-"+m.toLowerCase());
+function heat(hex,dark){ const h=Hct.fromInt(Blend.harmonize(argbFromHex(hex),argbFromHex(seed))); h.tone=dark?62:50; h.chroma=Math.max(h.chroma,60); return hexFromArgb(h.toInt()); }
+function applyTheme(){
+  const dark=isDark(); const s=new SchemeTonalSpot(Hct.fromInt(argbFromHex(seed)),dark,0); const r=document.documentElement.style;
+  TOKENS.forEach(t=>r.setProperty("--md-sys-color-"+kebab(t),hexFromArgb(MDC[t].getArgb(s))));
+  r.setProperty("--heat-hot",heat("#e5484d",dark)); r.setProperty("--heat-cold",heat("#2f6fdb",dark));
+  r.setProperty("--heat-mid",hexFromArgb(MDC.surfaceContainerHighest.getArgb(s)));
+  r.colorScheme=dark?"dark":"light";
+  document.querySelector('meta[name="theme-color"]').content=hexFromArgb(MDC.surface.getArgb(s));
+  document.querySelector("#themeIcon use").setAttribute("href","#i-"+{auto:"brightness_auto",light:"light_mode",dark:"dark_mode"}[themeMode]);
+  if(window.__D) renderAll();
+}
+mq.addEventListener("change",()=>{ if(themeMode==="auto") applyTheme(); });
+document.getElementById("btnTheme").addEventListener("click",()=>{ themeMode={auto:"light",light:"dark",dark:"auto"}[themeMode]; store.set("kb-theme",themeMode); applyTheme(); toastTheme(); });
+function toastTheme(){ document.getElementById("btnTheme").setAttribute("aria-label","明るさ: "+{auto:"端末に合わせる",light:"ライト",dark:"ダーク"}[themeMode]); }
+
+/* ---------- 共通 ---------- */
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmtDate=s=>{const [y,m,d]=s.split("-");return (+m)+"/"+(+d);};
+const sgn=v=>(v>0?"+":v<0?"−":"±")+Math.abs(Math.round(v)).toLocaleString();
+const kfmt=v=>(v>0?"+":v<0?"−":"")+(Math.abs(v)>=1000?(Math.abs(v)/1000).toFixed(1)+"k":Math.abs(Math.round(v)));
+function rgb(h){h=h.replace("#","");return [0,2,4].map(i=>parseInt(h.substr(i,2),16));}
+function mix(a,b,t){const A=rgb(a),B=rgb(b);return A.map((x,i)=>Math.round(x+(B[i]-x)*t));}
+function lum([r,g,b]){const f=c=>{c/=255;return c<=.03928?c/12.92:((c+.055)/1.055)**2.4};return .2126*f(r)+.7152*f(g)+.0722*f(b);}
+function heatColor(t){ t=Math.max(-1,Math.min(1,t)); const c=t>=0?mix(css("--heat-mid"),css("--heat-hot"),t):mix(css("--heat-mid"),css("--heat-cold"),-t);
+  const L=lum(c); const ink=(1.05/(L+.05))>((L+.05)/.05)?"#ffffff":"#111418"; return {bg:`rgb(${c.join(",")})`,ink}; }
+
+let D, N, UNITS, mode="v3", dayIdx=0, sel=null;
+const sum=(u,n)=>D.units[u].diff.slice(-n).reduce((a,b)=>a+(b??0),0);
+const maxAbs=k=>Math.max(...UNITS.map(u=>Math.abs(D.units[u][k])));
+const prevBig=u=>(D.units[u].diff[N-1]??0)>=5000;
+const MODES={
+  v3:{v:u=>D.units[u].v3,t:u=>D.units[u].v3/maxAbs("v3"),txt:u=>D.units[u].rank3+"位",lo:"冷たい",hi:"アツい",note:()=>"1〜3台を打つ場合の順位（40台中）。"+fmtDate(D.asof)+"までのデータから計算。"},
+  v4:{v:u=>D.units[u].v4,t:u=>D.units[u].v4/maxAbs("v4"),txt:u=>D.units[u].rank4+"位",lo:"冷たい",hi:"アツい",note:()=>"5台以上を押さえる場合の順位（40台中）。連続マイナスの台を上げ、連続プラスの台を下げています。"},
+  d7:{v:u=>sum(u,7),t:u=>sum(u,7)/12000,txt:u=>kfmt(sum(u,7)),lo:"−12,000枚",hi:"+12,000枚",note:()=>fmtDate(D.days[N-7])+"〜"+fmtDate(D.asof)+"の差枚合計。"},
+  d30:{v:u=>sum(u,30),t:u=>sum(u,30)/20000,txt:u=>kfmt(sum(u,30)),lo:"−20,000枚",hi:"+20,000枚",note:()=>fmtDate(D.days[N-30])+"〜"+fmtDate(D.asof)+"の差枚合計（データのある日のみ）。"},
+  day:{v:u=>D.units[u].diff[dayIdx]??0,t:u=>(D.units[u].diff[dayIdx]??0)/8000,txt:u=>kfmt(D.units[u].diff[dayIdx]??0),lo:"−8,000枚",hi:"+8,000枚",note:()=>fmtDate(D.days[dayIdx])+"の差枚。店全体の平均 "+sgn(D.dayAvg[dayIdx])+"枚。"}
+};
+const rankKey=()=>mode==="v4"?"rank4":"rank3";
+
+/* ---------- 島図 ---------- */
+function renderFloor(){
+  const f=$("floor"); f.innerHTML=""; const M=MODES[mode]; const [L,R]=D.columns; const n=Math.max(L.length,R.length);
+  const head=document.createElement("div"); head.className="frow head"; head.innerHTML="<span>781〜815</span><span class='aisle'>通路</span><span>756〜780</span>"; f.appendChild(head);
+  const cell=u=>{ const b=document.createElement("button"); b.type="button"; b.className="cell";
+    if(!D.units[u]){ b.disabled=true; b.innerHTML="<b>"+u+"</b><span>—</span>"; return b; }
+    const c=heatColor(M.t(u)); b.style.background=c.bg; b.style.color=c.ink;
+    b.setAttribute("aria-pressed",sel===u?"true":"false");
+    b.setAttribute("aria-label",u+"番 "+M.txt(u)+(prevBig(u)?" 前日+5000枚以上":""));
+    b.innerHTML=(prevBig(u)?"<i class='flag' aria-hidden='true'></i>":"")+"<b>"+u+"</b><span>"+M.txt(u)+"</span>";
+    b.addEventListener("click",()=>openUnit(u)); return b; };
+  for(let i=n-1;i>=0;i--){ const r=document.createElement("div"); r.className="frow";
+    r.appendChild(L[i]?cell(L[i]):document.createElement("span")); const a=document.createElement("span"); a.className="aisle"; r.appendChild(a);
+    r.appendChild(R[i]?cell(R[i]):document.createElement("span")); f.appendChild(r); }
+  const foot=document.createElement("div"); foot.className="frow head"; foot.style.gridTemplateColumns="1fr"; foot.innerHTML="<span>下がカウンター側（781と780が手前）</span>"; f.appendChild(foot);
+  $("legLo").textContent=M.lo; $("legHi").textContent=M.hi;
+  $("legBar").style.background=`linear-gradient(90deg,${css("--heat-cold")},${css("--heat-mid")},${css("--heat-hot")})`;
+  $("modeNote").textContent=M.note()+" 左上の点＝前日+5000枚以上。";
+}
+function setMode(m){ mode=m; document.querySelectorAll("#segs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.mode===m?"true":"false")); $("dayctl").classList.toggle("on",m==="day"); renderFloor(); renderHero(); }
+
+/* ---------- ヒーロー ---------- */
+function chip(u){ const x=D.units[u], k=mode==="v4"?"v4":"v3"; const c=heatColor(x[k]/maxAbs(k));
+  const b=document.createElement("button"); b.type="button"; b.className="chip";
+  b.innerHTML=`<span class="sw" style="background:${c.bg}"></span><span class="num">${u}</span><small>${x[rankKey()]}位</small>`+(prevBig(u)?`<span class="tag">前日+${(x.diff[N-1]/1000).toFixed(1)}k</span>`:"");
+  b.addEventListener("click",()=>openUnit(u)); return b; }
+function renderHero(){
+  const wide=mode==="v4"; const k=rankKey(); const order=UNITS.slice().sort((a,b)=>D.units[a][k]-D.units[b][k]);
+  $("heroTitle").textContent=wide?"押さえたい5台（5台以上を打つ場合）":"本命（1〜3台を打つ場合）";
+  const top=$("heroTop"), bot=$("heroBottom"); top.innerHTML=""; bot.innerHTML="";
+  order.slice(0,wide?5:3).forEach(u=>top.appendChild(chip(u))); order.slice(-5).reverse().forEach(u=>bot.appendChild(chip(u)));
+  const big=order.slice(0,wide?5:3).filter(prevBig);
+  $("heroLead").textContent=big.length?("「前日+」の付いた台は、前日に大きく出た台です。+5000〜+10000枚の翌日は平均を下回りがちでした（+10000枚超は件数が少なく、どちらとも言えません）。気になる場合は次の順位の台へ。"):"順位は過去の傾向をまとめたものです。店全体が強い日かどうかの影響の方が大きくなります。";
+}
+
+/* ---------- ボトムシート ---------- */
+function openSheet(html){ $("sheetBody").innerHTML=html; $("sheet").classList.add("open"); $("sheet").setAttribute("aria-hidden","false"); $("scrim").classList.add("open"); document.body.style.overflow="hidden"; setTimeout(()=>{const c=$("sheet").querySelector(".icon-btn");c&&c.focus();},50); }
+function closeSheet(){ $("sheet").classList.remove("open"); $("sheet").setAttribute("aria-hidden","true"); $("scrim").classList.remove("open"); document.body.style.overflow=""; }
+$("scrim").addEventListener("click",closeSheet);
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeSheet(); });
+const closeBtn="<button class='icon-btn' type='button' aria-label='閉じる' onclick='window.__close()'><svg class='ms' aria-hidden='true'><use href='#i-close'/></svg></button>";
+window.__close=closeSheet;
+
+function openUnit(u){
+  sel=u; renderFloor(); const x=D.units[u]; const g1=x.g[N-1];
+  const why=x.why.length?x.why.map(w=>`<li>${w[0]}：期待割 ${w[1].toFixed(1)}%</li>`).join(""):"<li>当てはまる条件なし</li>";
+  openSheet(`<div class="sheet-head"><span class="big" id="sheetTitle">${u}番</span>
+    <span class="chip" style="cursor:default">1〜3台用 ${x.rank3}位</span><span class="chip" style="cursor:default">5台〜用 ${x.rank4}位</span>${closeBtn}</div>
+    ${prevBig(u)?`<p class="banner" style="margin:12px 0 0"><svg class="ms" aria-hidden="true"><use href="#i-warning"/></svg><span>前日 ${sgn(x.diff[N-1])}枚。前日に大きく出た台は、翌日は平均を下回りがちでした。</span></p>`:""}
+    <dl class="kv">
+      <div><dt>前日の差枚</dt><dd>${sgn(x.diff[N-1]??0)}</dd></div>
+      <div><dt>前日の回転数</dt><dd>${g1==null?"データなし":g1.toLocaleString()+"G"}</dd></div>
+      <div><dt>直近7日の平均回転数</dt><dd>${x.g7.toLocaleString()}G</dd></div>
+      <div><dt>表の期待機械割</dt><dd>${x.table.toFixed(1)}%</dd></div>
+      <div><dt>連続マイナス／プラス</dt><dd>${x.minus}日／${x.plus}日</dd></div>
+      <div><dt>直近7日の差枚</dt><dd>${sgn(sum(u,7))}</dd></div>
+      <div><dt>直近30日の差枚</dt><dd>${sgn(sum(u,30))}</dd></div>
+      <div><dt>${N}日の差枚</dt><dd>${sgn(sum(u,N))}</dd></div>
+    </dl>
+    <div style="font-size:13px;color:var(--md-sys-color-on-surface-variant)">90日表で当てはまった主な条件</div><ul class="why">${why}</ul>
+    <div style="font-weight:500;margin-top:4px">直近30日の差枚</div>
+    <div class="chartbox"><svg id="spark" role="img" aria-label="${u}番の直近30日の差枚"></svg></div>
+    <div class="readout num" id="sparkReadout">棒をタップすると日付と差枚を表示します。</div>`);
+  drawBars($("spark"),x.diff.slice(-30).map(v=>v??0),D.days.slice(-30),{h:140,readout:"sparkReadout",
+    fmt:(d,v,i)=>{const g=x.g[N-30+i];return fmtDate(d)+"  "+sgn(v)+"枚  "+(g==null?"回転数 データなし":g.toLocaleString()+"G");}});
+}
+
+function openPalette(){
+  const sw=SEEDS.map(([c,n])=>`<button class="swatch" type="button" data-seed="${c}" aria-label="${n}" aria-pressed="${c===seed}" style="background:${c}"><svg class="ms" aria-hidden="true"><use href="#i-check"/></svg></button>`).join("");
+  openSheet(`<div class="sheet-head"><span style="font-size:22px;font-weight:500" id="sheetTitle">テーマ</span>${closeBtn}</div>
+    <p style="font-size:13px;color:var(--md-sys-color-on-surface-variant)">選んだ色から、画面全体の配色を作ります（Material You）。</p>
+    <div class="swatches">${sw}</div>
+    <label style="display:flex;align-items:center;gap:12px;font-size:14px"><input type="color" id="seedInput" value="${seed}" style="width:48px;height:40px;border:0;background:none">好きな色を選ぶ</label>
+    <div style="font-weight:500;margin:20px 0 8px">明るさ</div>
+    <div class="btn-row">${[["auto","brightness_auto","端末に合わせる"],["light","light_mode","ライト"],["dark","dark_mode","ダーク"]].map(([m,i,l])=>`<button class="btn" type="button" data-theme="${m}" aria-pressed="${m===themeMode}"><svg class="ms" aria-hidden="true"><use href="#i-${i}"/></svg>${l}</button>`).join("")}</div>`);
+  const setSeed=c=>{ seed=c; store.set("kb-seed",c); applyTheme(); document.querySelectorAll(".swatch").forEach(s=>s.setAttribute("aria-pressed",s.dataset.seed===c)); const ci=$("seedInput"); if(ci&&ci.value!==c) ci.value=c; };
+  document.querySelectorAll(".swatch").forEach(s=>s.addEventListener("click",()=>setSeed(s.dataset.seed)));
+  $("seedInput").addEventListener("input",e=>setSeed(e.target.value));
+  document.querySelectorAll("[data-theme]").forEach(b=>b.addEventListener("click",()=>{ themeMode=b.dataset.theme; store.set("kb-theme",themeMode); applyTheme(); document.querySelectorAll("[data-theme]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.theme===themeMode)); }));
+}
+$("btnPalette").addEventListener("click",openPalette);
+
+/* ---------- グラフ ---------- */
+function drawBars(svg,vals,dates,o){
+  const W=Math.max(320,vals.length*(o.bw||14)),H=o.h||150,padL=40,padR=6,padT=14,padB=20;
+  const ext=Math.max(1000,...vals.map(v=>Math.abs(v))); const step=ext>6000?4000:ext>3000?2000:1000; const top=Math.ceil(ext/step)*step;
+  const y=v=>padT+(H-padT-padB)*(top-v)/(2*top); const gaps=o.gaps||new Set();
+  const slots=vals.length+gaps.size*2; const bw=(W-padL-padR)/slots; const line=css("--md-sys-color-outline-variant");
+  let s=""; [top,top/2,0,-top/2,-top].forEach(v=>{ s+=`<line x1="${padL}" x2="${W-padR}" y1="${y(v)}" y2="${y(v)}" stroke="${line}" stroke-width="${v===0?1.5:.6}"/><text x="${padL-4}" y="${y(v)+3}" text-anchor="end">${v===0?"0":(v>0?"+":"−")+Math.abs(v/1000)+"k"}</text>`; });
+  let slot=0; const pos=[]; vals.forEach((v,i)=>{ if(gaps.has(i)) slot+=2; pos.push(padL+slot*bw); slot++; });
+  if(o.avg!=null) s+=`<line x1="${padL}" x2="${W-padR}" y1="${y(o.avg)}" y2="${y(o.avg)}" stroke="${css("--md-sys-color-primary")}" stroke-dasharray="4 3" stroke-width="1.2"/><text x="${padL+4}" y="${padT-4}">点線＝期間平均 ${sgn(o.avg)}</text>`;
+  vals.forEach((v,i)=>{ const x=pos[i],w=Math.max(2,bw-2),y0=y(0),y1=y(v),hh=Math.max(1,Math.abs(y1-y0)); const op=o.hl&&!o.hl(i)?.45:1;
+    s+=`<rect x="${x+1}" y="${Math.min(y0,y1)}" width="${w}" height="${hh}" rx="2" fill="${v>=0?css("--heat-hot"):css("--heat-cold")}" opacity="${op}"/>`;
+    s+=`<rect class="hit" data-i="${i}" x="${x}" y="${padT}" width="${bw}" height="${H-padT-padB}" fill="transparent" style="cursor:pointer"/>`;
+    const xl=o.xlabel&&o.xlabel(i); if(xl) s+=`<text x="${x+bw/2}" y="${H-6}" text-anchor="middle">${xl}</text>`; });
+  gaps.forEach(i=>{ s+=`<text x="${pos[i]-bw}" y="${y(0)+12}" text-anchor="middle">空白</text>`; });
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`); svg.setAttribute("width",W); svg.setAttribute("height",H); svg.innerHTML=s;
+  svg.querySelectorAll(".hit").forEach(r=>{ const i=+r.dataset.i; const show=()=>{$(o.readout).textContent=o.fmt(dates[i],vals[i],i);};
+    r.addEventListener("mouseenter",show); r.addEventListener("click",()=>{show(); o.onClick&&o.onClick(i);}); });
+}
+function renderCharts(){
+  const gaps=new Set(); for(let i=1;i<N;i++){ if((new Date(D.days[i])-new Date(D.days[i-1]))/864e5>2) gaps.add(i); }
+  const avg=D.dayAvg.reduce((a,b)=>a+b,0)/N;
+  drawBars($("dayChart"),D.dayAvg,D.days,{h:170,bw:11,gaps,avg,readout:"dayReadout",
+    xlabel:i=>{const d=+D.days[i].split("-")[2];return (d===1||d===10||d===20||i===N-1)?fmtDate(D.days[i]):"";},
+    fmt:(d,v)=>fmtDate(d)+"（"+"日月火水木金土"[new Date(d).getDay()]+"） 全台平均 "+sgn(v)+"枚",
+    onClick:i=>{ dayIdx=i; $("daypick").value=i; dayLabel(); setMode("day"); $("floor").scrollIntoView({behavior:"smooth",block:"center"}); }});
+  { const box=$("dayChart").parentElement; box.scrollLeft=box.scrollWidth; }
+  $("dayReadout").textContent="期間平均 "+sgn(avg)+"枚／日。強かった日："+D.days.map((d,i)=>[d,D.dayAvg[i]]).sort((a,b)=>b[1]-a[1]).slice(0,4).map(x=>fmtDate(x[0])+" "+sgn(x[1])).join("、");
+  const by=Array.from({length:10},()=>[]); D.days.forEach((d,i)=>by[+d.split("-")[2]%10].push(D.dayAvg[i]));
+  const tv=by.map(a=>a.reduce((x,y)=>x+y,0)/a.length); const now=new Date(); const td=now.getDate()%10;
+  drawBars($("tailChart"),tv,tv.map((_,i)=>String(i)),{h:140,bw:30,avg,readout:"tailNote",xlabel:i=>"末尾"+i,hl:i=>i===td,
+    fmt:(d,v,i)=>`日付の末尾が${i}の日（${by[i].length}日分）：全台平均 ${sgn(v)}枚`});
+  $("tailNote").textContent=`今日（${now.getMonth()+1}/${now.getDate()}）は末尾${td}。末尾${td}の日の全台平均は ${sgn(tv[td])}枚（${by[td].length}日分）で、期間平均より${tv[td]>avg?"高め":"低め"}です。1つの末尾あたり5〜8日分しかないので目安です。`;
+}
+function dayLabel(){ $("daylabel").textContent=fmtDate(D.days[dayIdx])+"（平均 "+sgn(D.dayAvg[dayIdx])+"）"; }
+function renderAll(){ renderFloor(); renderHero(); renderCharts(); }
+
+/* ---------- 起動 ---------- */
+window.addEventListener("scroll",()=>$("appbar").classList.toggle("scrolled",scrollY>4),{passive:true});
+document.querySelectorAll("#segs button").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
+applyTheme(); toastTheme();
+fetch("data.json",{cache:"no-cache"}).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); }).then(d=>{
+  D=window.__D=d; N=D.days.length; UNITS=Object.keys(D.units); dayIdx=N-1;
+  const dp=$("daypick"); dp.max=N-1; dp.value=N-1; dayLabel(); dp.addEventListener("input",()=>{ dayIdx=+dp.value; dayLabel(); renderFloor(); });
+  $("subtitle").textContent=`麻生ハッピー・スマスロ③／${fmtDate(D.asof)}までの${N}日分`;
+  const next=new Date(D.asof); next.setDate(next.getDate()+1);
+  $("bannerText").textContent=`${fmtDate(D.asof)}までのデータで計算しています（${next.getMonth()+1}/${next.getDate()}以降の結果はまだ入っていません）。新しい日のデータを足すと順位が変わります。`;
+  renderAll();
+}).catch(e=>{ $("bannerText").textContent="データを読み込めませんでした（"+e.message+"）。ページを再読み込みしてください。"; });
+</script>
+</body>
+</html>

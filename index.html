@@ -1,616 +1,719 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f7f9ff">
-<title>カバネリ海門決戦 島ヒートマップ｜麻生ハッピー</title>
-<meta name="description" content="麻生ハッピー カバネリ海門決戦の翌日の狙い台と、島図のヒートマップ。">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kabaneri｜麻生ハッピー</title>
+<meta name="description" content="麻生ハッピー カバネリ海門決戦のAI Recommendと島図。">
+<meta name="theme-color" content="#fbfbfe" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111317" media="(prefers-color-scheme: dark)">
 <style>
-/* Material Design 3（Material You）。スマホ前提：下のナビゲーションバーで4画面を切り替える。
-   色は --md-sys-color-* トークンだけで塗り、JSがテーマカラーから明暗の配色を生成して上書きする。下は生成前の初期値 */
-:root{
-  --md-sys-color-primary:#2c638b; --md-sys-color-on-primary:#ffffff;
-  --md-sys-color-primary-container:#cce5ff; --md-sys-color-on-primary-container:#001e31;
-  --md-sys-color-secondary-container:#d6e4f7; --md-sys-color-on-secondary-container:#0f1d2a;
-  --md-sys-color-tertiary-container:#ecdcff; --md-sys-color-on-tertiary-container:#251431;
-  --md-sys-color-error:#ba1a1a; --md-sys-color-error-container:#ffdad6; --md-sys-color-on-error-container:#410002;
-  --md-sys-color-surface:#f7f9ff; --md-sys-color-on-surface:#181c20; --md-sys-color-on-surface-variant:#41474e;
-  --md-sys-color-surface-container-lowest:#ffffff; --md-sys-color-surface-container-low:#f1f4f9;
-  --md-sys-color-surface-container:#ebeef3; --md-sys-color-surface-container-high:#e5e8ee; --md-sys-color-surface-container-highest:#e0e3e8;
-  --md-sys-color-outline:#72787e; --md-sys-color-outline-variant:#c1c7ce;
-  --heat-hot:#d93a4c; --heat-cold:#2f6fdb; --heat-mid:#e0e3e8;
-  --font-body:"Noto Sans JP","Hiragino Sans",system-ui,sans-serif;
-  --font-num:"Roboto Mono",ui-monospace,monospace;
-  --r-xs:4px; --r-s:8px; --r-m:12px; --r-l:16px; --r-xl:28px; --r-full:999px;
-  --nav-h:80px;
-  color-scheme:light;
+/* Apple × Material You: Appleの文字組みと青1色の落ち着きに、M3の色の役割(コンテナ/面の段階)、
+   大きな角丸、アクティブインジケータ付きナビ、セグメントボタン、フィルタチップ、ボトムシート、押下時のステートレイヤーを合わせる */
+:root {
+  --primary: #0066cc; --on-primary: #ffffff; --primary-container: #d6e4ff; --on-primary-container: #001b3e;
+  --secondary-container: #dde3f0; --on-secondary-container: #151c27;
+  --surface: #fbfbfe; --surface-c-lowest: #ffffff; --surface-c-low: #f4f5fa; --surface-c: #eef0f6; --surface-c-high: #e8eaf1; --surface-c-highest: #e2e4ec;
+  --on-surface: #1b1c20; --on-surface-var: #5d606a; --outline: #c4c6d0; --outline-var: #e1e2ea;
+  --bg: var(--surface); --fg: var(--on-surface); --muted: var(--on-surface-var); --line: var(--outline-var); --hair: var(--outline-var);
+  --accent: var(--primary); --accent-soft: var(--primary-container); --red: var(--primary); --red-ink: #ffffff; --select: var(--on-surface);
+  --h4: #4f8fe0; --h4-ink: #ffffff; --h3: #c2d7f7; --h3-ink: #0d2a4d; --h2: #e6e8ef; --h2-ink: #1b1c20; --h1: #ffffff; --h1-ink: #6b6e78;
+  --none: var(--surface-c-highest); --none-ink: #8a8d97; --pill-on: var(--secondary-container); --pill-on-ink: var(--on-secondary-container);
+  --mono: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Hiragino Sans", "Yu Gothic UI", "Roboto", system-ui, sans-serif;
+  --body: var(--mono); --display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Hiragino Sans", "Yu Gothic UI", "Roboto", system-ui, sans-serif;
+  --doto: var(--display); --jp-dot: var(--display);
+  --ease: cubic-bezier(.2, 0, 0, 1);
+  --ai-ring: #1fae4b; --gamble: #e8590c; --tert-container: #ffe0cc; --on-tert-container: #3a1600;
 }
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0}
-body{background:var(--md-sys-color-surface);color:var(--md-sys-color-on-surface);font-family:var(--font-body);font-size:15px;line-height:1.55;-webkit-text-size-adjust:100%}
-.ms{width:24px;height:24px;fill:currentColor;flex:none;display:inline-block;vertical-align:middle}
-.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
-:focus-visible{outline:2px solid var(--md-sys-color-primary);outline-offset:2px}
-button{font:inherit;color:inherit}
-
-/* ===== Top app bar ===== */
-.appbar{position:sticky;top:0;z-index:20;background:var(--md-sys-color-surface);padding:calc(6px + env(safe-area-inset-top)) max(4px,env(safe-area-inset-right)) 6px max(16px,env(safe-area-inset-left));display:flex;align-items:center;gap:4px;transition:background-color .2s}
-.appbar.scrolled{background:var(--md-sys-color-surface-container)}
-.appbar .titles{flex:1;min-width:0}
-.hallsw{display:flex;gap:4px;flex:none}
-.hallsw a{height:32px;padding:0 12px;border-radius:var(--r-full);border:1px solid var(--md-sys-color-outline-variant);display:inline-flex;align-items:center;font-size:13px;font-weight:500;color:var(--md-sys-color-on-surface-variant);text-decoration:none;white-space:nowrap}
-.hallsw a[aria-current="page"]{background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container);border-color:transparent}
-.appbar h1{font-size:18px;font-weight:500;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.appbar p{margin:0;font-size:12px;color:var(--md-sys-color-on-surface-variant);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.icon-btn{width:48px;height:48px;border:0;border-radius:var(--r-full);background:transparent;color:var(--md-sys-color-on-surface-variant);display:grid;place-items:center;cursor:pointer;flex:none}
-.icon-btn:active{background:color-mix(in srgb,currentColor 12%,transparent)}
-
-main{max-width:640px;margin:0 auto;padding:4px max(16px,env(safe-area-inset-left)) calc(var(--nav-h) + 24px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-right))}
-.view{display:none;gap:16px}
-.view.on{display:grid}
-.view>*{min-width:0}
-
-/* ===== 共通部品 ===== */
-.card{border-radius:var(--r-l);padding:16px;background:var(--md-sys-color-surface-container-low)}
-.card h2,.sec-title{font-size:16px;font-weight:500;margin:0 0 4px}
-.support{font-size:13px;color:var(--md-sys-color-on-surface-variant);margin:0 0 12px}
-.sec-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 4px 0}
-.sec-title small{font-size:12px;font-weight:400;color:var(--md-sys-color-on-surface-variant)}
-.banner{background:var(--md-sys-color-tertiary-container);color:var(--md-sys-color-on-tertiary-container);border-radius:var(--r-m);padding:12px 14px;display:flex;gap:10px;align-items:flex-start;font-size:13px}
-.tag{display:inline-flex;align-items:center;gap:3px;font-size:12px;line-height:1;border-radius:var(--r-s);padding:5px 8px;background:var(--md-sys-color-surface-container-highest);color:var(--md-sys-color-on-surface-variant);white-space:nowrap}
-.tag .ms{width:14px;height:14px}
-.seg{display:flex;border:1px solid var(--md-sys-color-outline);border-radius:var(--r-full);overflow:hidden}
-.seg button{flex:1;border:0;border-left:1px solid var(--md-sys-color-outline);background:transparent;font-size:13px;font-weight:500;height:40px;padding:0 8px;display:inline-flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;white-space:nowrap}
-.seg button:first-child{border-left:0}
-.seg button .ms{width:18px;height:18px;display:none}
-.seg button[aria-pressed="true"]{background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container)}
-.seg button[aria-pressed="true"] .ms{display:inline-block}
-.text-btn{border:0;background:transparent;color:var(--md-sys-color-primary);font-weight:500;font-size:14px;height:40px;padding:0 12px;border-radius:var(--r-full);display:inline-flex;align-items:center;gap:4px;cursor:pointer}
-
-/* ===== 狙い台 ===== */
-.context{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.context div{background:var(--md-sys-color-surface-container);border-radius:var(--r-m);padding:10px 12px}
-.context dt{font-size:12px;color:var(--md-sys-color-on-surface-variant)}
-.context dd{margin:2px 0 0;font-size:15px;font-weight:500}
-.context dd small{font-weight:400;font-size:12px;color:var(--md-sys-color-on-surface-variant)}
-.picks{display:grid;gap:8px}
-.pick{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:12px;border:0;width:100%;text-align:left;border-radius:var(--r-l);padding:14px 12px 14px 14px;background:var(--md-sys-color-surface-container-low);cursor:pointer}
-.pick.main{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container)}
-.rank{width:44px;height:44px;border-radius:var(--r-m);display:grid;place-items:center;font-family:var(--font-num);font-weight:500;font-size:18px;background:var(--md-sys-color-surface-container-highest)}
-.pick.main .rank{background:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary)}
-.pick .unit{font-family:var(--font-num);font-size:26px;font-weight:500;line-height:1.1}
-.pick .where{font-size:12px;opacity:.8;margin-left:6px;font-family:var(--font-body);font-weight:400}
-.pick .reasons{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
-.pick.main .tag{background:color-mix(in srgb,var(--md-sys-color-on-primary-container) 10%,transparent);color:inherit}
-.pick .heatdot{width:12px;height:36px;border-radius:var(--r-full)}
-.mini{display:flex;flex-wrap:wrap;gap:8px}
-.mini button{height:36px;border-radius:var(--r-s);border:1px solid var(--md-sys-color-outline-variant);background:transparent;padding:0 10px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:var(--font-num);font-size:15px}
-.mini button small{font-family:var(--font-body);font-size:12px;color:var(--md-sys-color-on-surface-variant)}
-.mini.ex button{border-style:dashed}
-
-/* ===== 島図 ===== */
-.map-tools{display:grid;gap:8px;position:sticky;top:60px;z-index:5;background:var(--md-sys-color-surface);padding:8px 0}
-.daypanel{display:none;gap:6px}
-.daypanel.on{display:grid}
-.dayctl{display:flex;align-items:center;gap:4px}
-.daybtn{flex:1;min-width:0;height:44px;border:1px solid var(--md-sys-color-outline-variant);border-radius:var(--r-m);background:var(--md-sys-color-surface-container-low);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-size:15px;font-weight:500}
-.daybtn small{font-family:var(--font-num);font-size:12px;font-weight:400;color:var(--md-sys-color-on-surface-variant)}
-.icon-btn:disabled{opacity:.38;cursor:default}
-.daystrip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 4px;scroll-snap-type:x proximity}
-.daystrip::-webkit-scrollbar{display:none}
-.dchip{flex:none;width:52px;border:1px solid var(--md-sys-color-outline-variant);border-radius:var(--r-m);background:transparent;padding:4px 0 6px;display:grid;justify-items:center;gap:1px;cursor:pointer;scroll-snap-align:center;position:relative}
-.dchip b{font-family:var(--font-num);font-size:14px;font-weight:500}
-.dchip span{font-size:11px;color:var(--md-sys-color-on-surface-variant)}
-.dchip i{width:28px;height:4px;border-radius:2px;margin-top:2px}
-.dchip.gap{margin-left:14px}
-.dchip.gap::before{content:"";position:absolute;left:-10px;top:8px;bottom:8px;border-left:2px dotted var(--md-sys-color-outline-variant)}
-.dchip[aria-pressed="true"]{background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container);border-color:transparent}
-.dchip[aria-pressed="true"] span{color:inherit}
-.cal{margin-top:12px}
-.cal h3{font-size:14px;font-weight:500;margin:16px 0 6px}
-.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.calgrid .wd{font-size:11px;text-align:center;color:var(--md-sys-color-on-surface-variant)}
-.calgrid button,.calgrid .off{aspect-ratio:1/1.05;border:0;border-radius:var(--r-s);display:grid;place-items:center;align-content:center;gap:0;font-family:var(--font-num);line-height:1.1}
-.calgrid button{cursor:pointer;font-size:14px;font-weight:500}
-.calgrid button small{font-size:9px;font-weight:400}
-.calgrid .off{font-size:13px;color:var(--md-sys-color-outline-variant)}
-.calgrid button[aria-pressed="true"]{box-shadow:0 0 0 3px var(--md-sys-color-on-surface)}
-.warnbadge{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;background:var(--md-sys-color-error-container);color:var(--md-sys-color-error);flex:none}
-.warnbadge .ms{width:15px;height:15px}
-.cell b{display:inline-flex;align-items:center;gap:5px}
-.mini button .warnbadge{margin-left:-2px}
-input[type=range]{flex:1;accent-color:var(--md-sys-color-primary);height:32px;margin:0}
-.legend{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--md-sys-color-on-surface-variant)}
-.legend .bar{flex:1;height:8px;border-radius:var(--r-full)}
-.legend .exkey{width:22px;height:12px;border-radius:3px;border:1px dashed var(--md-sys-color-outline)}
-.floor{display:grid;gap:4px}
-.frow{display:grid;grid-template-columns:1fr 28px 1fr;gap:4px}
-.frow.head{font-size:12px;color:var(--md-sys-color-on-surface-variant);text-align:center}
-.aisle{border-radius:var(--r-xs);background:var(--md-sys-color-surface-container);writing-mode:vertical-rl;display:grid;place-items:center;font-size:11px;color:var(--md-sys-color-on-surface-variant)}
-.cell{border:0;border-radius:var(--r-s);min-height:44px;padding:0 10px 0 12px;display:flex;align-items:center;justify-content:space-between;gap:4px;cursor:pointer;position:relative;transition:transform .1s}
-.cell b{font-family:var(--font-num);font-size:16px;font-weight:500}
-.cell span{font-family:var(--font-num);font-size:13px}
-.cell.ex{background:repeating-linear-gradient(135deg,var(--md-sys-color-surface-container-high) 0 6px,var(--md-sys-color-surface-container) 6px 12px)!important;color:var(--md-sys-color-on-surface-variant)!important;outline:1px dashed var(--md-sys-color-outline);outline-offset:-1px}
-.cell.ex span{font-family:var(--font-body);font-size:12px}
-.cell[aria-pressed="true"]{box-shadow:0 0 0 3px var(--md-sys-color-on-surface)}
-.cell:active{transform:scale(.97)}
-.topside{text-align:center;font-size:12px;color:var(--md-sys-color-on-surface-variant);padding:6px;border-bottom:2px solid var(--md-sys-color-outline-variant);margin-bottom:4px}
-.emptylabel{display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--md-sys-color-on-surface-variant);border:1px dashed var(--md-sys-color-outline-variant);border-radius:12px}
-.counter{text-align:center;font-size:12px;color:var(--md-sys-color-on-surface-variant);padding:6px;border-top:2px solid var(--md-sys-color-outline-variant);margin-top:4px}
-
-/* ===== グラフ ===== */
-.chartbox{overflow-x:auto;margin:0 -4px;scrollbar-width:thin}
-svg text{fill:var(--md-sys-color-on-surface-variant);font-family:var(--font-num);font-size:10px}
-.readout{font-size:13px;min-height:1.6em;color:var(--md-sys-color-on-surface-variant);margin-top:4px}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th,td{padding:9px 6px;border-bottom:1px solid var(--md-sys-color-outline-variant);text-align:right}
-th:first-child,td:first-child{text-align:left}
-th{font-weight:500;color:var(--md-sys-color-on-surface-variant);font-size:12px}
-.about p,.about li{font-size:14px;color:var(--md-sys-color-on-surface-variant)}
-.about h3{font-size:15px;font-weight:500;margin:20px 0 6px;color:var(--md-sys-color-on-surface)}
-.about ol{padding-left:20px}
-code{font-family:var(--font-num);font-size:12px;background:var(--md-sys-color-surface-container-high);padding:1px 5px;border-radius:4px}
-
-/* ===== Navigation bar ===== */
-.navbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--md-sys-color-surface-container);display:flex;justify-content:center;padding:0 0 env(safe-area-inset-bottom)}
-.navbar nav{display:grid;grid-template-columns:repeat(4,1fr);width:100%;max-width:640px;height:var(--nav-h)}
-.navbar a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;color:var(--md-sys-color-on-surface-variant);font-size:12px;font-weight:500}
-.navbar .pill{width:64px;height:32px;border-radius:var(--r-full);display:grid;place-items:center;transition:background-color .2s}
-.navbar a[aria-current="page"]{color:var(--md-sys-color-on-surface)}
-.navbar a[aria-current="page"] .pill{background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container)}
-.navbar .ms.f{display:none}
-.navbar a[aria-current="page"] .ms.o{display:none}
-.navbar a[aria-current="page"] .ms.f{display:inline-block}
-
-/* ===== Bottom sheet ===== */
-.scrim{position:fixed;inset:0;background:rgba(0,0,0,.32);opacity:0;pointer-events:none;transition:opacity .2s;z-index:40}
-.scrim.open{opacity:1;pointer-events:auto}
-.sheet{position:fixed;left:0;right:0;bottom:0;z-index:50;margin:0 auto;max-width:640px;max-height:90%;overflow-y:auto;overscroll-behavior:contain;background:var(--md-sys-color-surface-container-low);border-radius:var(--r-xl) var(--r-xl) 0 0;padding:4px 20px calc(24px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .3s cubic-bezier(.2,0,0,1)}
-.sheet.open{transform:none}
-.sheet:not(.open){visibility:hidden;transition:transform .3s cubic-bezier(.2,0,0,1),visibility 0s .3s}
-.handle{width:32px;height:4px;border-radius:2px;background:var(--md-sys-color-on-surface-variant);opacity:.4;margin:12px auto 8px}
-.sheet-head{display:flex;align-items:center;gap:10px}
-.sheet-head .big{font-family:var(--font-num);font-size:34px;font-weight:500}
-.sheet-head .grow{flex:1;min-width:0}
-.sheet-head .sub{font-size:13px;color:var(--md-sys-color-on-surface-variant)}
-.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
-.kv div{background:var(--md-sys-color-surface-container-high);border-radius:var(--r-m);padding:8px 12px}
-.kv dt{font-size:12px;color:var(--md-sys-color-on-surface-variant)}
-.kv dd{margin:0;font-family:var(--font-num);font-size:17px}
-.warn{background:var(--md-sys-color-error-container);color:var(--md-sys-color-on-error-container)}
-ul.why{margin:6px 0 12px;padding-left:20px;font-size:13px}
-.swatches{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 16px}
-.swatch{width:48px;height:48px;border-radius:50%;border:0;cursor:pointer;display:grid;place-items:center;color:#fff}
-.swatch .ms{display:none}
-.swatch[aria-pressed="true"] .ms{display:block}
-.btn{height:40px;border-radius:var(--r-full);border:1px solid var(--md-sys-color-outline);background:transparent;color:var(--md-sys-color-primary);font-weight:500;font-size:14px;padding:0 14px;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
-.btn[aria-pressed="true"]{background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container);border-color:transparent}
-.btn .ms{width:18px;height:18px}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --primary: #9fcaff; --on-primary: #003060; --primary-container: #0f4a86; --on-primary-container: #d6e4ff;
+  --secondary-container: #3b4858; --on-secondary-container: #d8e3f4;
+  --surface: #111317; --surface-c-lowest: #0c0e12; --surface-c-low: #191c20; --surface-c: #1d2024; --surface-c-high: #282a2f; --surface-c-highest: #33353a;
+  --on-surface: #e2e2e9; --on-surface-var: #c4c6d0; --outline: #8e9099; --outline-var: #44474e;
+  --red-ink: #003060;
+  --h4: #3d7fcf; --h4-ink: #ffffff; --h3: #1d3c63; --h3-ink: #d6e4ff; --h2: #2a2d33; --h2-ink: #e2e2e9; --h1: #191c20; --h1-ink: #8e9099;
+  --none: #2a2d32; --none-ink: #8e9099; --ai-ring: #34d26a; --gamble: #ff8a3d; --tert-container: #5a2a0c; --on-tert-container: #ffdcc6; color-scheme: dark;
+} }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { background: var(--surface); color: var(--on-surface); font: 400 16px/1.5 var(--body); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+button { font: inherit; color: inherit; letter-spacing: inherit; position: relative; overflow: hidden; }
+/* ステートレイヤー(M3): 押すと薄く色が乗る */
+button::after { content: ""; position: absolute; inset: 0; background: currentColor; opacity: 0; transition: opacity .2s var(--ease); pointer-events: none; border-radius: inherit; }
+@media (hover: hover) { button:hover::after { opacity: .08; } }
+button:active::after { opacity: .14; }
+:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.page { max-width: 680px; margin: 0 auto; padding-block: 16px 120px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.page.has-sheet { padding-bottom: 440px; }
+.top { display: grid; gap: 4px; margin: 12px 4px 20px; }
+h1 { margin: 0; font: 700 32px/1.15 var(--display); letter-spacing: -0.02em; }
+.top small { font: 400 14px/1.4 var(--body); color: var(--on-surface-var); }
+.label { font: 500 13px/1.35 var(--body); color: var(--on-surface-var); letter-spacing: 0; }
+.block-title { margin: 0; font: 600 20px/1.25 var(--display); letter-spacing: -0.01em; }
+section[hidden] { display: none; }
+.view { display: grid; gap: 14px; }
+.block { background: var(--surface-c-low); border-radius: 28px; padding: 20px; display: grid; gap: 14px; min-width: 0; }
+.block p { margin: 0; }
+/* 日付: フィルタチップ */
+.dates { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: 2px max(16px, env(safe-area-inset-left, 0px)); scroll-behavior: smooth; }
+.dates::-webkit-scrollbar { display: none; }
+.date { flex: none; min-width: 62px; min-height: 52px; padding: 6px 12px; border: 1px solid var(--outline); border-radius: 12px; background: transparent; display: grid; justify-items: center; line-height: 1.15; cursor: pointer; font: 600 15px var(--body); transition: background .2s var(--ease), border-color .2s var(--ease); }
+.date span { font: 400 11px var(--body); color: var(--on-surface-var); }
+.date.hot span { color: var(--primary); font-weight: 600; }
+.date.next { border-style: dashed; border-color: var(--ai-ring); }
+.date.next span { color: var(--ai-ring); font-weight: 600; }
+.date.next[aria-pressed="true"] { background: var(--ai-ring); color: #fff; border-style: solid; }
+.date.next[aria-pressed="true"] span { color: #fff; }
+.date[aria-pressed="true"] { background: var(--secondary-container); color: var(--on-secondary-container); border-color: transparent; }
+.date[aria-pressed="true"] span { color: inherit; }
+/* セグメントボタン(M3) */
+.seg { display: flex; border: 1px solid var(--outline); border-radius: 9999px; overflow: hidden; }
+.seg button { flex: 1; min-height: 40px; border: 0; border-left: 1px solid var(--outline); background: transparent; font: 500 14px var(--body); cursor: pointer; color: var(--on-surface); padding: 0 8px; transition: background .2s var(--ease); }
+.seg button:first-child { border-left: 0; }
+.seg button[aria-pressed="true"] { background: var(--secondary-container); color: var(--on-secondary-container); }
+.seg button[aria-pressed="true"]::before { content: "✓ "; font-weight: 600; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.stat { background: var(--surface-c-low); border-radius: 20px; padding: 12px 14px; display: grid; gap: 2px; min-width: 0; }
+.stat b { font: 600 clamp(20px, 5.6vw, 28px)/1.1 var(--display); letter-spacing: -0.02em; white-space: nowrap; }
+.stat b.red { color: var(--primary); }
+.map-card { background: var(--surface-c-low); border-radius: 28px; padding: 10px; }
+svg#map { display: block; width: 100%; height: auto; touch-action: manipulation; }
+.cell { cursor: pointer; }
+.cell path { stroke: var(--surface-c-low); stroke-width: 4; transition: fill .25s var(--ease); }
+.cell text { text-anchor: middle; dominant-baseline: central; pointer-events: none; font-family: var(--body); }
+.cell .no { font-size: 23px; font-weight: 600; }
+.cell .val { font-size: 21px; }
+.cell .ring { fill: none; stroke: var(--ai-ring); stroke-width: 14; display: none; pointer-events: none; }
+.cell.ai .ring.a { display: block; }
+.cell .ring.g { stroke: var(--gamble); stroke-width: 14; }
+.cell.gb .ring.g { display: block; }
+.cell.ai.gb .ring.g { stroke-width: 28; }
+.cell.sel path.base { stroke: var(--on-surface); stroke-width: 7; }
+.cell:focus { outline: none; }
+.cell:focus-visible path.base { stroke: var(--primary); stroke-width: 7; }
+.cell.dim { opacity: .18; }
+.ghost { fill: none; stroke: var(--outline); stroke-width: 2; stroke-dasharray: 2 8; stroke-linecap: round; }
+.ghost-label { fill: var(--on-surface-var); font: 400 16px var(--body); text-anchor: middle; dominant-baseline: central; }
+.pillar { fill: none; stroke: var(--outline); stroke-width: 2; stroke-dasharray: 2 6; stroke-linecap: round; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; list-style: none; margin: 0; padding: 0 6px; font: 400 12px/1.4 var(--body); color: var(--on-surface-var); }
+.legend li { display: flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 14px; border-radius: 5px; box-shadow: inset 0 0 0 1px var(--outline-var); }
+.note { margin: 0; padding: 0 6px; font: 400 13px/1.55 var(--body); color: var(--on-surface-var); }
+.block .note { padding: 0; }
+/* ボトムシート(M3) */
+.sheet { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(80px + env(safe-area-inset-bottom, 0px)); width: min(680px, 100%); z-index: 6; background: var(--surface-c-low); border-radius: 28px 28px 0 0; padding: 28px max(20px, env(safe-area-inset-right, 0px)) 16px max(20px, env(safe-area-inset-left, 0px)); display: grid; gap: 12px; max-height: 64vh; overflow-y: auto; box-shadow: 0 -2px 6px rgba(0,0,0,.06), 0 -8px 24px rgba(0,0,0,.10); animation: up .3s var(--ease); }
+.sheet::before { content: ""; position: absolute; top: 10px; left: 50%; width: 32px; height: 4px; margin-left: -16px; border-radius: 2px; background: var(--outline); }
+@keyframes up { from { transform: translate(-50%, 24px); opacity: 0; } }
+.sheet .stats { gap: 8px; }
+.sheet .stat { background: var(--surface-c-high); }
+.sheet-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; padding-right: 48px; }
+.sheet-no { font: 700 32px/1 var(--display); letter-spacing: -0.02em; }
+.sheet-where { font-size: 13px; color: var(--on-surface-var); }
+#sheetClose { position: absolute; top: 14px; right: 12px; width: 40px; height: 40px; border: 0; border-radius: 9999px; background: var(--surface-c-high); font-size: 16px; cursor: pointer; color: var(--on-surface-var); }
+.spark { display: block; width: 100%; height: auto; }
+.tag { display: inline-flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 8px; font: 500 13px var(--body); background: var(--primary-container); color: var(--on-primary-container); }
+.tag.out { background: transparent; color: var(--on-surface-var); box-shadow: inset 0 0 0 1px var(--outline); }
+.search { display: flex; gap: 8px; align-items: center; }
+.search input { flex: 1; min-width: 0; min-height: 56px; border: 0; border-radius: 28px; padding: 0 24px; background: var(--surface-c-high); color: var(--on-surface); font: 400 16px var(--body); }
+.sorts { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.sorts::-webkit-scrollbar { display: none; }
+.sorts button { flex: none; min-height: 36px; padding: 0 16px; border: 1px solid var(--outline); border-radius: 8px; background: transparent; font: 500 14px var(--body); cursor: pointer; }
+.sorts button[aria-pressed="true"] { background: var(--secondary-container); color: var(--on-secondary-container); border-color: transparent; }
+.sorts button[aria-pressed="true"]::before { content: "✓ "; }
+.rows { display: grid; gap: 2px; background: transparent; border-radius: 24px; overflow: hidden; }
+.row { display: grid; grid-template-columns: 22px 58px minmax(0, 1fr) 64px; gap: 8px; align-items: center; min-height: 60px; padding: 8px 16px; background: var(--surface-c-low); border: 0; border-radius: 6px; text-align: left; cursor: pointer; width: 100%; }
+.rows > .row:first-child { border-radius: 24px 24px 6px 6px; }
+.rows > .row:last-child { border-radius: 6px 6px 24px 24px; }
+.rows > .row:only-child { border-radius: 24px; }
+.block .rows > .row { background: var(--surface-c-lowest); }
+.row .pos { font: 400 13px var(--body); color: var(--on-surface-var); }
+.row .num { font: 600 17px var(--body); }
+.row .val { font: 600 20px/1 var(--display); letter-spacing: -0.02em; text-align: right; white-space: nowrap; }
+.row .val.red { color: var(--primary); }
+.why { font: 400 13px/1.35 var(--body); color: var(--on-surface-var); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.strip { display: block; width: 100%; height: 14px; }
+.matrix-wrap { overflow-x: auto; }
+svg#matrix { display: block; width: 100%; height: auto; }
+#matrix text { fill: var(--on-surface-var); font: 400 9px var(--body); }
+#matrix .rowhit { cursor: pointer; fill: transparent; }
+.chart { display: block; width: 100%; height: auto; }
+.chart text { fill: var(--on-surface-var); font: 400 10px var(--body); }
+.day-list .row { grid-template-columns: 82px minmax(0, 1fr) minmax(0, 1fr) 60px; }
+.day-list .hint2 { font: 400 13px var(--body); color: var(--on-surface-var); white-space: nowrap; }
+.day-list .hint2.ai { color: var(--primary); font-weight: 600; }
+h2 { margin: 0; font: 600 20px/1.25 var(--display); }
+a { color: var(--primary); }
+/* AI Recommend: プライマリコンテナのカード */
+#recoMap { background: var(--primary-container); color: var(--on-primary-container); }
+#recoMap .label, #recoMap .ai-sum { color: inherit; opacity: .85; }
+.ai-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px 10px; flex-wrap: wrap; }
+.chips { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.chip { min-height: 64px; padding: 8px 4px; border: 0; border-radius: 16px; background: var(--surface-c-lowest); cursor: pointer; display: grid; place-items: center; align-content: center; gap: 2px; line-height: 1.1; font: 600 17px var(--body); color: var(--on-surface); }
+.chip small { font: 400 12px var(--body); color: var(--on-surface-var); }
+.chips { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.chip .cno { font: 600 17px var(--body); }
+.chip.first { grid-column: 1 / -1; min-height: 76px; grid-template-columns: auto 1fr auto; place-items: center start; padding: 10px 20px; gap: 12px; box-shadow: inset 0 0 0 2px var(--ai-ring); }
+.chip.first .cno { font: 700 30px/1 var(--display); letter-spacing: -0.02em; }
+.chip.first small { font: 600 17px var(--body); justify-self: end; color: var(--on-surface); }
+.chip.first.hit small { color: inherit; }
+.chip .rank { font: 600 12px var(--body); padding: 4px 10px; border-radius: 9999px; background: var(--ai-ring); color: #fff; }
+.chip.hit { background: var(--primary); color: var(--on-primary); }
+.chip.hit small { color: inherit; opacity: .9; }
+.ai-sum { font: 400 13px/1.5 var(--body); color: var(--on-surface-var); }
+.ai-sum b { font-weight: 700; }
+.skip { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font: 400 12px var(--body); }
+.skip span { padding: 2px 8px; border-radius: 6px; background: var(--surface-c-lowest); color: var(--on-surface-var); }
+/* ナビゲーションバー(M3): アイコンの後ろにアクティブインジケータ */
+ul.plain { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: 15px; }
+#v-about p { margin: 0; font-size: 15px; line-height: 1.6; }
+#v-about b { font-weight: 600; }
+.seg.sub { margin-bottom: 14px; }
+nav.tabs button > span:last-child { white-space: nowrap; font-size: 12px; }
+.bat { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.bat > div { border-radius: 20px; padding: 14px; display: grid; gap: 4px; }
+.bat .a { background: var(--primary-container); color: var(--on-primary-container); }
+.bat .g { background: var(--tert-container); color: var(--on-tert-container); }
+.bat .t { font: 600 14px var(--body); display: flex; align-items: center; gap: 6px; }
+.bat .t i { width: 10px; height: 10px; border-radius: 3px; }
+.bat .big { font: 700 34px/1.05 var(--display); letter-spacing: -0.02em; }
+.bat .big small { font: 500 14px var(--body); margin-left: 4px; }
+.bat .sub2 { font: 400 12px/1.45 var(--body); opacity: .85; }
+#batting { margin-bottom: 14px; }
+#gambleMap { background: var(--tert-container); color: var(--on-tert-container); }
+#gambleMap .label, #gambleMap .ai-sum { color: inherit; opacity: .85; }
+#gambleMap .chip.first { box-shadow: inset 0 0 0 2px var(--gamble); }
+#gambleMap .chip .rank { background: var(--gamble); }
+#gambleMap .chip.hit { background: var(--gamble); color: #fff; }
+.chip .both { font: 500 10px var(--body); color: var(--on-surface-var); }
+.chip.hit .both { color: inherit; }
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; background: var(--surface-c); padding: 0 max(8px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(8px, env(safe-area-inset-left, 0px)); }
+nav.tabs div { max-width: 680px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); }
+nav.tabs button { height: 80px; border: 0; background: none; font: 500 12px var(--body); color: var(--on-surface-var); cursor: pointer; display: grid; place-items: center; align-content: center; gap: 4px; overflow: visible; }
+nav.tabs button::after { display: none; }
+nav.tabs .ind { width: 64px; height: 32px; border-radius: 16px; display: grid; place-items: center; transition: background .25s var(--ease); position: relative; overflow: hidden; }
+nav.tabs .ind::after { content: ""; position: absolute; inset: 0; background: currentColor; opacity: 0; transition: opacity .2s; }
+nav.tabs button:active .ind::after { opacity: .12; }
+nav.tabs button svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+nav.tabs button[aria-current="page"] { color: var(--on-surface); font-weight: 600; }
+nav.tabs button[aria-current="page"] .ind { background: var(--secondary-container); color: var(--on-secondary-container); }
+@media (min-width: 720px) { .page { padding-top: 36px; } h1 { font-size: 40px; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+<style>
+/* ===== カバネリ用の追加 ===== */
+[hidden] { display: none !important; }
+.top { grid-template-columns: 1fr auto; align-items: end; }
+.top > div { display: grid; gap: 4px; min-width: 0; }
+.halls { display: flex; border: 1px solid var(--outline); border-radius: 9999px; overflow: hidden; }
+.halls a { min-height: 36px; padding: 0 14px; display: grid; place-items: center; font: 500 13px var(--body); color: var(--on-surface); text-decoration: none; border-left: 1px solid var(--outline); white-space: nowrap; }
+.halls a:first-child { border-left: 0; }
+.halls a[aria-current="page"] { background: var(--secondary-container); color: var(--on-secondary-container); }
+/* 島図 */
+svg.kmap { display: block; width: 100%; height: auto; touch-action: manipulation; }
+.kmap .cell .no { text-anchor: start; }
+.kmap .cell rect.base { stroke: var(--surface-c-low); stroke-width: 3; transition: fill .25s var(--ease); }
+.kmap .cell.sel rect.base { stroke: var(--on-surface); stroke-width: 4; }
+.kmap .cell:focus-visible rect.base { stroke: var(--primary); stroke-width: 4; }
+.kmap .cell .no { font: 600 15px var(--body); dominant-baseline: central; }
+.kmap .cell .val { font: 400 12px var(--body); dominant-baseline: central; text-anchor: end; }
+.kmap .cell.ex text { fill: var(--on-surface-var); }
+.kmap .side { fill: var(--on-surface-var); font: 500 12px var(--body); text-anchor: middle; dominant-baseline: central; }
+.kmap .side-line { stroke: var(--outline-var); stroke-width: 2; }
+.kmap .colhead { fill: var(--on-surface-var); font: 400 11px var(--body); text-anchor: middle; }
+.kmap .empty { fill: none; stroke: var(--outline); stroke-width: 1.5; stroke-dasharray: 4 5; }
+.kmap .empty-label { fill: var(--on-surface-var); font: 500 13px var(--body); text-anchor: middle; dominant-baseline: central; }
+/* AIマーク: 緑のカプセルに「照準＋順位」。明日=塗り、過去=当たり塗り/外れ白抜き */
+.aimark .cap { fill: var(--ai-ring); }
+.aimark .cap-ring { fill: none; stroke: var(--ai-ring); stroke-width: 2; }
+.aimark .tgt { fill: none; stroke: #fff; stroke-width: 1.6; }
+.aimark .tgt-dot { fill: #fff; }
+.aimark text { fill: #fff; font: 700 13px var(--body); dominant-baseline: central; text-anchor: middle; }
+.aimark.top1 .cap { stroke: var(--surface-c-lowest); stroke-width: 2; }
+.aimark.top1 .halo { fill: none; stroke: var(--ai-ring); stroke-width: 2; }
+.aimark.miss .cap { fill: var(--surface-c-lowest); }
+.aimark.miss .tgt { stroke: var(--ai-ring); }
+.aimark.miss .tgt-dot { fill: var(--ai-ring); }
+.aimark.miss text { fill: var(--ai-ring); }
+.legend .mk { width: auto; height: auto; box-shadow: none; display: inline-flex; }
+/* AIカード */
+#reco { background: var(--primary-container); color: var(--on-primary-container); }
+#reco .label, #reco .ai-sum { color: inherit; opacity: .85; }
+.chips .chip small { white-space: nowrap; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tags .tag { height: 24px; padding: 0 8px; font-size: 12px; }
+.recolist .row { grid-template-columns: 22px 52px minmax(0, 1fr); }
+.recolist .why { white-space: normal; }
+.mini { display: flex; flex-wrap: wrap; gap: 6px; }
+.mini button { min-height: 36px; padding: 0 12px; border: 1px solid var(--outline); border-radius: 8px; background: transparent; font: 500 14px var(--body); cursor: pointer; }
+.mini button small { font-size: 11px; color: var(--on-surface-var); margin-left: 4px; }
+.stat small { font: 400 12px var(--body); color: var(--on-surface-var); }
+.bat .a2 { background: var(--secondary-container); color: var(--on-secondary-container); }
+.past-picks .row { grid-template-columns: 22px 58px minmax(0, 1fr) 72px; }
+.daybars rect { cursor: pointer; }
+.unit-list .row { grid-template-columns: 22px 52px minmax(0, 1fr) 72px; }
 </style>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-arrow_drop_down" viewBox="0 -960 960 960"><path d="M464-376 306-533q-2-2-3.5-4.76-1.5-2.77-1.5-5.92 0-6.32 4.13-10.82 4.12-4.5 10.87-4.5h328q6.75 0 10.88 4.64 4.12 4.63 4.12 10.81 0 1.55-5 10.55L496-376q-3 3-7.06 5t-8.94 2q-4.87 0-8.94-2-4.06-2-7.06-5Z"/></symbol><symbol id="i-bar_chart-fill" viewBox="0 -960 960 960"><path d="M690-160q-12.75 0-21.37-8.63Q660-177.25 660-190v-220q0-12.75 8.63-21.38Q677.25-440 690-440h80q12.75 0 21.38 8.62Q800-422.75 800-410v220q0 12.75-8.62 21.37Q782.75-160 770-160h-80Zm-250 0q-12.75 0-21.37-8.63Q410-177.25 410-190v-580q0-12.75 8.63-21.38Q427.25-800 440-800h80q12.75 0 21.38 8.62Q550-782.75 550-770v580q0 12.75-8.62 21.37Q532.75-160 520-160h-80Zm-250 0q-12.75 0-21.37-8.63Q160-177.25 160-190v-380q0-12.75 8.63-21.38Q177.25-600 190-600h80q12.75 0 21.38 8.62Q300-582.75 300-570v380q0 12.75-8.62 21.37Q282.75-160 270-160h-80Z"/></symbol><symbol id="i-bar_chart" viewBox="0 -960 960 960"><path d="M690-160q-12.75 0-21.37-8.63Q660-177.25 660-190v-220q0-12.75 8.63-21.38Q677.25-440 690-440h80q12.75 0 21.38 8.62Q800-422.75 800-410v220q0 12.75-8.62 21.37Q782.75-160 770-160h-80Zm-250 0q-12.75 0-21.37-8.63Q410-177.25 410-190v-580q0-12.75 8.63-21.38Q427.25-800 440-800h80q12.75 0 21.38 8.62Q550-782.75 550-770v580q0 12.75-8.62 21.37Q532.75-160 520-160h-80Zm-250 0q-12.75 0-21.37-8.63Q160-177.25 160-190v-380q0-12.75 8.63-21.38Q177.25-600 190-600h80q12.75 0 21.38 8.62Q300-582.75 300-570v380q0 12.75-8.62 21.37Q282.75-160 270-160h-80Z"/></symbol><symbol id="i-block" viewBox="0 -960 960 960"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-60q61.01 0 117.51-20.5Q654-181 699-220L220-699q-38 46-59 102.17T140-480q0 142.37 98.81 241.19Q337.63-140 480-140Zm259-121q37-45 59-101.49 22-56.5 22-117.51 0-142.38-98.81-241.19T480-820q-60.66 0-116.83 21T261-739l478 478Z"/></symbol><symbol id="i-brightness_auto" viewBox="0 -960 960 960"><path d="M402-414h159l32 93q2 8 8.54 12 6.54 4 14.38 4 13.08 0 20.58-10.9 7.5-10.89 2.5-23.1L510-682q-2.24-7.11-8.2-11.05-5.97-3.95-12.68-3.95h-16.41q-6.71 0-12.6 3.95-5.9 3.94-8.11 11.05L323-339q-5 11.9 2 22.95Q332-305 345.54-305q8.46 0 15.54-4.95 7.09-4.95 9.92-13.05l31-91Zm15-48 61.29-163H483l62 163H417Zm-70.84 302H220q-24.75 0-42.37-17.63Q160-195.25 160-220v-125.59L68-438q-9-9-13-19.81-4-10.82-4-22Q51-491 55-502q4-11 13-20l92-92.41V-740q0-24.75 17.63-42.38Q195.25-800 220-800h125.59L438-892q9-9 20.5-13t22.7-4q11.19 0 22.02 4.7 10.82 4.69 19.78 13.3l91 91h126q24.75 0 42.38 17.62Q800-764.75 800-740v125.59L892-522q9 9 13 19.81 4 10.82 4 22 0 11.19-4 22.19-4 11-13 20l-92 92.41V-220q0 24.75-17.62 42.37Q764.75-160 740-160H614l-91 90q-8.96 8.13-19.78 12.57Q492.39-53 481.2-53q-11.2 0-22.16-4.43Q448.07-61.87 439-70l-92.84-90ZM370-220l111 107 107.92-107H740v-151l109-109-109-109v-151H589L481-849 371-740H220v151L111-480l109 109v151h150Zm111-261Z"/></symbol><symbol id="i-calendar_month" viewBox="0 -960 960 960"><path d="M180-80q-24 0-42-18t-18-42v-620q0-24 18-42t42-18h65v-28q0-13.6 9.2-22.8 9.2-9.2 22.8-9.2 14.02 0 23.51 9.2Q310-861.6 310-848v28h340v-28q0-13.6 9.2-22.8 9.2-9.2 22.8-9.2 14.03 0 23.51 9.2Q715-861.6 715-848v28h65q24 0 42 18t18 42v620q0 24-18 42t-42 18H180Zm0-60h600v-430H180v430Zm0-490h600v-130H180v130Zm0 0v-130 130Zm300 230q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z"/></symbol><symbol id="i-check" viewBox="0 -960 960 960"><path d="m378-332 363-363q9.27-9 21.64-9 12.36 0 21.36 9.05 9 9.06 9 21.5 0 12.45-9 21.45L399-267q-9 9-21 9t-21-9L175-449q-9-9.07-8.5-21.53.5-12.47 9.55-21.47 9.06-9 21.5-9 12.45 0 21.45 9l159 160Z"/></symbol><symbol id="i-chevron_left" viewBox="0 -960 960 960"><path d="m406-481 177 177q9 9 8.5 21t-9.5 21q-9 9-21.5 9t-21.5-9L341-460q-5-5-7-10t-2-11q0-6 2-11t7-10l199-199q9-9 21.5-9t21.5 9q9 9 9 21.5t-9 21.5L406-481Z"/></symbol><symbol id="i-chevron_right" viewBox="0 -960 960 960"><path d="M530-481 353-658q-9-9-8.5-21t9.5-21q9-9 21.5-9t21.5 9l198 198q5 5 7 10t2 11q0 6-2 11t-7 10L396-261q-9 9-21 8.5t-21-9.5q-9-9-9-21.5t9-21.5l176-176Z"/></symbol><symbol id="i-close" viewBox="0 -960 960 960"><path d="M480-438 270-228q-9 9-21 9t-21-9q-9-9-9-21t9-21l210-210-210-210q-9-9-9-21t9-21q9-9 21-9t21 9l210 210 210-210q9-9 21-9t21 9q9 9 9 21t-9 21L522-480l210 210q9 9 9 21t-9 21q-9 9-21 9t-21-9L480-438Z"/></symbol><symbol id="i-dark_mode" viewBox="0 -960 960 960"><path d="M480-120q-150 0-255-105T120-480q0-135 79.5-229T408-830q20-5 34-1t22 15q8 10 7.5 25t-8.5 35q-9 23-14 47t-5 49q0 90 63 153t153 63q25 0 48.5-4.5T754-461q22-8 38-7t26 9q10 8 13 23t-2 36q-27 121-121 200.5T480-120Zm0-60q109 0 190-67.5T771-406q-25 11-53.5 16.5T660-384q-115 0-195.5-80.5T384-660q0-24 5-51.5t18-62.5q-98 27-162.5 109.5T180-480q0 125 87.5 212.5T480-180Zm-4-297Z"/></symbol><symbol id="i-flag-fill" viewBox="0 -960 960 960"><path d="M260-429v279q0 12.75-8.68 21.37-8.67 8.63-21.5 8.63-12.82 0-21.32-8.63-8.5-8.62-8.5-21.37v-620q0-12.75 8.63-21.38Q217.25-800 230-800h289q10.5 0 18.75 6.5T548-776l14 62h208q12.75 0 21.38 8.62Q800-696.75 800-684v310q0 12.75-8.62 21.37Q782.75-344 770-344H568q-10.5 0-18.75-6T539-367l-14-62H260Z"/></symbol><symbol id="i-flag" viewBox="0 -960 960 960"><path d="M260-429v279q0 12.75-8.68 21.37-8.67 8.63-21.5 8.63-12.82 0-21.32-8.63-8.5-8.62-8.5-21.37v-620q0-12.75 8.63-21.38Q217.25-800 230-800h289q10.5 0 18.75 6.5T548-776l14 62h208q12.75 0 21.38 8.62Q800-696.75 800-684v310q0 12.75-8.62 21.37Q782.75-344 770-344H568q-10.5 0-18.75-6T539-367l-14-62H260Zm335 25h145v-250H535q-10.5 0-18.75-6.5T506-678l-14-62H260v251h292q10.5 0 18.75 6T581-466l14 62Zm-95-168Z"/></symbol><symbol id="i-grid_view-fill" viewBox="0 -960 960 960"><path d="M180-510q-24.75 0-42.37-17.63Q120-545.25 120-570v-210q0-24.75 17.63-42.38Q155.25-840 180-840h210q24.75 0 42.38 17.62Q450-804.75 450-780v210q0 24.75-17.62 42.37Q414.75-510 390-510H180Zm0 390q-24.75 0-42.37-17.63Q120-155.25 120-180v-210q0-24.75 17.63-42.38Q155.25-450 180-450h210q24.75 0 42.38 17.62Q450-414.75 450-390v210q0 24.75-17.62 42.37Q414.75-120 390-120H180Zm390-390q-24.75 0-42.37-17.63Q510-545.25 510-570v-210q0-24.75 17.63-42.38Q545.25-840 570-840h210q24.75 0 42.38 17.62Q840-804.75 840-780v210q0 24.75-17.62 42.37Q804.75-510 780-510H570Zm0 390q-24.75 0-42.37-17.63Q510-155.25 510-180v-210q0-24.75 17.63-42.38Q545.25-450 570-450h210q24.75 0 42.38 17.62Q840-414.75 840-390v210q0 24.75-17.62 42.37Q804.75-120 780-120H570Z"/></symbol><symbol id="i-grid_view" viewBox="0 -960 960 960"><path d="M180-510q-24.75 0-42.37-17.63Q120-545.25 120-570v-210q0-24.75 17.63-42.38Q155.25-840 180-840h210q24.75 0 42.38 17.62Q450-804.75 450-780v210q0 24.75-17.62 42.37Q414.75-510 390-510H180Zm0 390q-24.75 0-42.37-17.63Q120-155.25 120-180v-210q0-24.75 17.63-42.38Q155.25-450 180-450h210q24.75 0 42.38 17.62Q450-414.75 450-390v210q0 24.75-17.62 42.37Q414.75-120 390-120H180Zm390-390q-24.75 0-42.37-17.63Q510-545.25 510-570v-210q0-24.75 17.63-42.38Q545.25-840 570-840h210q24.75 0 42.38 17.62Q840-804.75 840-780v210q0 24.75-17.62 42.37Q804.75-510 780-510H570Zm0 390q-24.75 0-42.37-17.63Q510-155.25 510-180v-210q0-24.75 17.63-42.38Q545.25-450 570-450h210q24.75 0 42.38 17.62Q840-414.75 840-390v210q0 24.75-17.62 42.37Q804.75-120 780-120H570ZM180-570h210v-210H180v210Zm390 0h210v-210H570v210Zm0 390h210v-210H570v210Zm-390 0h210v-210H180v210Zm390-390Zm0 180Zm-180 0Zm0-180Z"/></symbol><symbol id="i-info" viewBox="0 -960 960 960"><path d="M483.18-280q12.82 0 21.32-8.63 8.5-8.62 8.5-21.37v-180q0-12.75-8.68-21.38-8.67-8.62-21.5-8.62-12.82 0-21.32 8.62-8.5 8.63-8.5 21.38v180q0 12.75 8.68 21.37 8.67 8.63 21.5 8.63Zm-3.2-314q14.02 0 23.52-9.2T513-626q0-14.45-9.48-24.22-9.48-9.78-23.5-9.78t-23.52 9.78Q447-640.45 447-626q0 13.6 9.48 22.8 9.48 9.2 23.5 9.2Zm.29 514q-82.74 0-155.5-31.5Q252-143 197.5-197.5t-86-127.34Q80-397.68 80-480.5t31.5-155.66Q143-709 197.5-763t127.34-85.5Q397.68-880 480.5-880t155.66 31.5Q709-817 763-763t85.5 127Q880-563 880-480.27q0 82.74-31.5 155.5Q817-252 763-197.68q-54 54.31-127 86Q563-80 480.27-80Zm.23-60Q622-140 721-239.5t99-241Q820-622 721.19-721T480-820q-141 0-240.5 98.81T140-480q0 141 99.5 240.5t241 99.5Zm-.5-340Z"/></symbol><symbol id="i-light_mode" viewBox="0 -960 960 960"><path d="M479.76-340Q538-340 579-380.76q41-40.77 41-99Q620-538 579.24-579q-40.77-41-99-41Q422-620 381-579.24q-41 40.77-41 99Q340-422 380.76-381q40.77 41 99 41Zm.24 60q-83 0-141.5-58.5T280-480q0-83 58.5-141.5T480-680q83 0 141.5 58.5T680-480q0 83-58.5 141.5T480-280ZM70-450q-12.75 0-21.37-8.68-8.63-8.67-8.63-21.5 0-12.82 8.63-21.32Q57.25-510 70-510h100q12.75 0 21.38 8.68 8.62 8.67 8.62 21.5 0 12.82-8.62 21.32-8.63 8.5-21.38 8.5H70Zm720 0q-12.75 0-21.37-8.68-8.63-8.67-8.63-21.5 0-12.82 8.63-21.32 8.62-8.5 21.37-8.5h100q12.75 0 21.38 8.68 8.62 8.67 8.62 21.5 0 12.82-8.62 21.32-8.63 8.5-21.38 8.5H790ZM479.82-760q-12.82 0-21.32-8.63-8.5-8.62-8.5-21.37v-100q0-12.75 8.68-21.38 8.67-8.62 21.5-8.62 12.82 0 21.32 8.62 8.5 8.63 8.5 21.38v100q0 12.75-8.68 21.37-8.67 8.63-21.5 8.63Zm0 720Q467-40 458.5-48.63 450-57.25 450-70v-100q0-12.75 8.68-21.38 8.67-8.62 21.5-8.62 12.82 0 21.32 8.62 8.5 8.63 8.5 21.38v100q0 12.75-8.68 21.37-8.67 8.63-21.5 8.63ZM240-678l-57-56q-9-9-8.63-21.6.37-12.61 8.53-21.5 8.89-8.9 21.5-8.9 12.6 0 21.6 9l56 57q8 9 8 21t-8 20.5q-8 8.5-20.5 8.5t-21.5-8Zm494 495-56-57q-8-9-8-21.38 0-12.37 8.5-20.62 8.5-9 20.5-9t21 9l57 56q9 9 8.63 21.6-.37 12.61-8.53 21.5-8.89 8.9-21.5 8.9-12.6 0-21.6-9Zm-56-495q-9-9-9-21t9-21l56-57q9-9 21.6-8.63 12.61.37 21.5 8.53 8.9 8.89 8.9 21.5 0 12.6-9 21.6l-57 56q-8 8-20.36 8-12.37 0-21.64-8ZM182.9-182.9q-8.9-8.89-8.9-21.5 0-12.6 9-21.6l57-56q8.8-9 20.9-9 12.1 0 20.71 9 9.39 9 9.39 21t-9 21l-56 57q-9 9-21.6 8.63-12.61-.37-21.5-8.53ZM480-480Z"/></symbol><symbol id="i-location_on" viewBox="0 -960 960 960"><path d="M480-159q133-121 196.5-219.5T740-552q0-117.79-75.29-192.9Q589.42-820 480-820t-184.71 75.1Q220-669.79 220-552q0 75 65 173.5T480-159Zm-.25 59q-10.75 0-21.25-3.5T440-115q-42-38-91-87.5T258-309q-42-57-70-119t-28-124q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 62-28 124t-70 119q-42 57-91 106.5T520-115q-8 8-18.75 11.5t-21.5 3.5Zm.25-460Zm.09 70q28.91 0 49.41-20.59 20.5-20.59 20.5-49.5t-20.59-49.41q-20.59-20.5-49.5-20.5t-49.41 20.59q-20.5 20.59-20.5 49.5t20.59 49.41q20.59 20.5 49.5 20.5Z"/></symbol><symbol id="i-menu_book-fill" viewBox="0 -960 960 960"><path d="M512-250q50-25 98-37.5T712-300q38 0 78.5 6t69.5 16v-429q-34-17-72-25t-76-8q-54 0-104.5 16.5T512-677v427Zm-30 79q-8 0-14.5-1.5T456-178q-47-29-100-45t-108-16q-37 0-72 9t-70 22q-23 11-44.5-3T40-251v-463q0-15 7-27.5T68-761q42-20 87.5-29.5T248-800q63 0 122.5 17T482-731q51-35 109.5-52T712-800q47 0 92 9.5t87 29.5q14 7 21.5 19.5T920-714v463q0 28-22.5 42.5t-44.5.5q-34-14-69-22.5t-72-8.5q-54 0-106 16t-98 45q-5 4-11.5 5.5T482-171Zm78-437q0-6 4-11.5t9-7.5q30-11 61.5-17t65.5-6q22 0 43 2.5t41 7.5q6 2 11 7.5t5 12.5q0 11-7.5 17t-18.5 3q-17-5-35.5-7.5T700-610q-29 0-56 5.5T591-588q-14 5-22.5-.5T560-608Zm0 220q0-6 4-12t9-8q30-11 61.5-16.5T700-430q22 0 43 2.5t41 7.5q6 2 11 7.5t5 12.5q0 11-7.5 17t-18.5 3q-17-5-35.5-7.5T700-390q-29 0-56 5t-53 16q-14 5-22.5 0t-8.5-19Zm0-110q0-6 4-11.5t9-7.5q30-11 61.5-17t65.5-6q22 0 43 2.5t41 7.5q6 2 11 7.5t5 12.5q0 11-7.5 17t-18.5 3q-17-5-35.5-7.5T700-500q-29 0-56 5.5T591-478q-14 5-22.5-.5T560-498Z"/></symbol><symbol id="i-menu_book" viewBox="0 -960 960 960"><path d="M248-300q53.57 0 104.28 12.5Q403-275 452-250v-427q-45-30-97.62-46.5Q301.76-740 248-740q-38 0-74.5 9.5T100-707v434q31-14 70.5-20.5T248-300Zm264 50q50-25 98-37.5T712-300q38 0 78.5 6t69.5 16v-429q-34-17-71.82-25-37.82-8-76.18-8-54 0-104.5 16.5T512-677v427Zm-30 79q-7.54 0-14.27-1.5Q461-174 456-178q-47-29-99.85-45-52.84-16-108.15-16-36.54 0-71.77 9T106-208q-23.1 11-44.55-3Q40-225 40-251v-463q0-15 7-27.5T68-761q42-20 87.39-29.5 45.4-9.5 92.61-9.5 63 0 122.5 17T482-731q51-35 109.5-52T712-800q46.87 0 91.93 9.5Q849-781 891-761q14 7 21.5 19.5T920-714v463q0 27.89-22.5 42.45Q875-194 853-208q-34-14-69.23-22.5Q748.54-239 712-239q-54.27 0-106.14 16Q554-207 508-178q-5 4-11.73 5.5T482-171ZM276-489Zm284-119q0-5.52 4.02-11.34 4.03-5.82 8.98-7.66 30-11 61.34-17 31.33-6 65.91-6 21.61 0 42.68 2.5T784-640q6 2 11 7.4 5 5.39 5 12.13 0 11.47-7.5 17.47-7.5 6-18.5 3-16.8-5-35.4-7.5Q720-610 700-610q-29 0-56 5.5T591-588q-14 5-22.5-.5T560-608Zm0 220q0-5.81 4.02-11.94 4.03-6.12 8.98-8.06 30-11 61.34-16.5 31.33-5.5 65.91-5.5 21.61 0 42.68 2.5T784-420q6 2 11 7.4 5 5.39 5 12.13 0 11.47-7.5 17.47-7.5 6-18.5 3-16.8-5-35.4-7.5Q720-390 700-390q-29 0-56 5t-53 16q-14 5-22.5 0t-8.5-19Zm0-110q0-5.52 4.02-11.34 4.03-5.82 8.98-7.66 30-11 61.34-17 31.33-6 65.91-6 21.61 0 42.68 2.5T784-530q6 2 11 7.4 5 5.39 5 12.13 0 11.47-7.5 17.47-7.5 6-18.5 3-16.8-5-35.4-7.5Q720-500 700-500q-29 0-56 5.5T591-478q-14 5-22.5-.5T560-498Z"/></symbol><symbol id="i-palette" viewBox="0 -960 960 960"><path d="M480-80q-82 0-155-31.5t-127.5-86Q143-252 111.5-325T80-480q0-85 32-158t87.5-127q55.5-54 130-84.5T489-880q79 0 150 26.5T763.5-780q53.5 47 85 111.5T880-527q0 108-63 170.5T650-294h-75q-18 0-31 14t-13 31q0 27 14.5 46t14.5 44q0 38-21 58.5T480-80Zm0-400Zm-233 26q20 0 35-15t15-35q0-20-15-35t-35-15q-20 0-35 15t-15 35q0 20 15 35t35 15Zm126-170q20 0 35-15t15-35q0-20-15-35t-35-15q-20 0-35 15t-15 35q0 20 15 35t35 15Zm214 0q20 0 35-15t15-35q0-20-15-35t-35-15q-20 0-35 15t-15 35q0 20 15 35t35 15Zm131 170q20 0 35-15t15-35q0-20-15-35t-35-15q-20 0-35 15t-15 35q0 20 15 35t35 15ZM480-140q11 0 15.5-4.5T500-159q0-14-14.5-26T471-238q0-46 30-81t76-35h73q76 0 123-44.5T820-527q0-132-100-212.5T489-820q-146 0-247.5 98.5T140-480q0 141 99.5 240.5T480-140Z"/></symbol><symbol id="i-trending_down" viewBox="0 -960 960 960"><path d="M780-300 539-541 414-416q-16.93 17-41.97 17Q347-399 330-416L102-644q-9-9-9-21.5t9-21.5q9-9 21.5-9t21.5 9l226 227 125-125q16.93-17 41.97-17Q563-602 580-585l241 241v-94q0-12.33 9-20.66 9-8.34 21.23-8.34t20.5 8.34Q880-450.33 880-438v168q0 12.75-8.62 21.37Q862.75-240 850-240H683q-12.75 0-21.37-8.68-8.63-8.67-8.63-21.5 0-12.82 8.63-21.32 8.62-8.5 21.37-8.5h97Z"/></symbol><symbol id="i-warning-fill" viewBox="0 -960 960 960"><path d="M92-120q-9 0-15.65-4.13Q69.7-128.25 66-135q-4.17-6.6-4.58-14.3Q61-157 66-165l388-670q5-8 11.5-11.5T480-850q8 0 14.5 3.5T506-835l388 670q5 8 4.58 15.7-.41 7.7-4.58 14.3-3.7 6.75-10.35 10.87Q877-120 868-120H92Zm392.18-117q12.82 0 21.32-8.68 8.5-8.67 8.5-21.5 0-12.82-8.68-21.32-8.67-8.5-21.5-8.5-12.82 0-21.32 8.68-8.5 8.67-8.5 21.5 0 12.82 8.68 21.32 8.67 8.5 21.5 8.5Zm0-111q12.82 0 21.32-8.63 8.5-8.62 8.5-21.37v-164q0-12.75-8.68-21.38-8.67-8.62-21.5-8.62-12.82 0-21.32 8.62-8.5 8.63-8.5 21.38v164q0 12.75 8.68 21.37 8.67 8.63 21.5 8.63Z"/></symbol><symbol id="i-warning" viewBox="0 -960 960 960"><path d="M92-120q-9 0-15.65-4.13Q69.7-128.25 66-135q-4.17-6.6-4.58-14.3Q61-157 66-165l388-670q5-8 11.5-11.5T480-850q8 0 14.5 3.5T506-835l388 670q5 8 4.58 15.7-.41 7.7-4.58 14.3-3.7 6.75-10.35 10.87Q877-120 868-120H92Zm52-60h672L480-760 144-180Zm340.18-57q12.82 0 21.32-8.68 8.5-8.67 8.5-21.5 0-12.82-8.68-21.32-8.67-8.5-21.5-8.5-12.82 0-21.32 8.68-8.5 8.67-8.5 21.5 0 12.82 8.68 21.32 8.67 8.5 21.5 8.5Zm0-111q12.82 0 21.32-8.63 8.5-8.62 8.5-21.37v-164q0-12.75-8.68-21.38-8.67-8.62-21.5-8.62-12.82 0-21.32 8.62-8.5 8.63-8.5 21.38v164q0 12.75 8.68 21.37 8.67 8.63 21.5 8.63ZM480-470Z"/></symbol></svg>
-<header class="appbar" id="appbar">
-  <div class="titles">
-    <h1>カバネリ海門決戦</h1>
-    <p id="subtitle">麻生ハッピー・スマスロ③</p>
+<main class="page" id="page">
+  <div class="top">
+    <div>
+      <h1>Kabaneri</h1>
+      <small>麻生ハッピー · 海門決戦 · <span id="range">読み込み中…</span></small>
+    </div>
+    <nav class="halls" aria-label="店舗"><a href="./" aria-current=page>ハッピー</a><a href="eagle.html">イーグル</a></nav>
   </div>
-  <nav class="hallsw" aria-label="店舗"><a href="./" aria-current=page>ハッピー</a><a href="eagle.html">イーグル</a></nav>
-  <button class="icon-btn" id="btnPalette" type="button" aria-label="テーマと明るさ"><svg class="ms" aria-hidden="true"><use href="#i-palette"/></svg></button>
-</header>
 
-<main>
-  <!-- 狙い台 -->
-  <section class="view" id="v-picks" aria-label="狙い台">
-    <div class="seg" role="group" aria-label="打つ台数" id="segCount">
-      <button type="button" data-wide="0" aria-pressed="true"><svg class="ms"><use href="#i-check"/></svg>1〜3台を打つ</button>
-      <button type="button" data-wide="1" aria-pressed="false"><svg class="ms"><use href="#i-check"/></svg>5台以上を押さえる</button>
+  <div class="seg sub" id="pastSeg" role="group" aria-label="過去データの表示" hidden>
+    <button type="button" data-p="map">マップ</button>
+    <button type="button" data-p="units">台</button>
+    <button type="button" data-p="days">日付</button>
+  </div>
+
+  <!-- 明日の狙い台 -->
+  <section class="view" id="v-next">
+    <div class="seg" id="modelSeg" role="group" aria-label="打つ台数">
+      <button type="button" data-m="r3">1〜3台を打つ</button>
+      <button type="button" data-m="r4">5台以上を押さえる</button>
     </div>
-    <dl class="context" id="context"></dl>
-    <div class="sec-title"><span id="picksTitle">本命</span><small id="picksNote"></small></div>
-    <div class="picks" id="picks"></div>
-    <div class="sec-title"><span>避けたい台</span><small>狙い度の下位5台</small></div>
-    <div class="mini" id="avoid"></div>
-    <div class="sec-title"><span>今日は狙わない台</span><small id="exNote"></small></div>
-    <div class="mini ex" id="exList"></div>
-    <div class="banner" id="banner"><svg class="ms" aria-hidden="true"><use href="#i-info"/></svg><span id="bannerText">データを読み込んでいます…</span></div>
+    <div class="block" id="reco"></div>
+    <div class="stats" id="ctx"></div>
+    <div class="map-card"><svg id="map" class="kmap" role="img" aria-label="島図"></svg></div>
+    <ul class="legend" id="legend"></ul>
+    <p class="note" id="mapNote"></p>
+    <div class="block" id="recoWhy"></div>
+    <div class="block" id="others"></div>
   </section>
 
-  <!-- 島図 -->
-  <section class="view" id="v-map" aria-label="島図">
-    <div class="map-tools">
-      <div class="seg" role="group" aria-label="色分けの基準" id="segMode">
-        <button type="button" data-mode="rank" aria-pressed="true"><svg class="ms"><use href="#i-check"/></svg>狙い度</button>
-        <button type="button" data-mode="d7" aria-pressed="false"><svg class="ms"><use href="#i-check"/></svg>7日</button>
-        <button type="button" data-mode="d30" aria-pressed="false"><svg class="ms"><use href="#i-check"/></svg>30日</button>
-        <button type="button" data-mode="day" aria-pressed="false"><svg class="ms"><use href="#i-check"/></svg>日別</button>
+  <!-- 過去データ -->
+  <section class="view" id="v-past" hidden>
+    <div class="block" id="batting"></div>
+    <div id="pastMap" class="view">
+      <div class="dates" id="dates" role="group" aria-label="日付"></div>
+      <div class="stats" id="dayStats"></div>
+      <div class="map-card"><svg id="map2" class="kmap" role="img" aria-label="この日の島図"></svg></div>
+      <ul class="legend" id="legend2"></ul>
+      <div class="block" id="dayPicks"></div>
+    </div>
+    <div id="pastUnits" class="view" hidden>
+      <div class="sorts" id="sorts" role="group" aria-label="並び順"></div>
+      <div class="rows unit-list" id="unitList"></div>
+      <p class="note">帯は左から古い日付順の差枚。濃い青は+2,000枚以上、灰色はマイナス。</p>
+    </div>
+    <div id="pastDays" class="view" hidden>
+      <div class="block">
+        <h2 class="block-title">日別の全台平均差枚</h2><span class="label">棒をタップするとその日のマップへ</span>
+        <svg class="chart daybars" id="dayChart" viewBox="0 0 360 150" role="img" aria-label="日別の全台平均差枚"></svg>
       </div>
-      <div class="daypanel" id="dayctl">
-        <div class="dayctl">
-          <button class="icon-btn" type="button" id="dayPrev" aria-label="前の日"><svg class="ms" aria-hidden="true"><use href="#i-chevron_left"/></svg></button>
-          <button class="daybtn" type="button" id="dayOpen" aria-label="カレンダーから日付を選ぶ"><svg class="ms" aria-hidden="true"><use href="#i-calendar_month"/></svg><span id="daylabel"></span><small id="dayavg"></small></button>
-          <button class="icon-btn" type="button" id="dayNext" aria-label="次の日"><svg class="ms" aria-hidden="true"><use href="#i-chevron_right"/></svg></button>
-        </div>
-        <div class="daystrip" id="daystrip" aria-label="日付"></div>
-      </div>
-      <div class="legend"><span id="legLo"></span><div class="bar" id="legBar"></div><span id="legHi"></span><span class="exkey" id="exKey" title="狙わない台"></span><span id="exKeyLabel">狙わない</span></div>
-      <div class="legend" id="warnLegend"><span class="warnbadge"><svg class="ms" aria-hidden="true"><use href="#i-warning-fill"/></svg></span><span id="warnLegendText"></span></div>
-    </div>
-    <div class="floor" id="floor"></div>
-    <p class="support" id="modeNote" style="margin:0"></p>
-  </section>
-
-  <!-- 傾向 -->
-  <section class="view" id="v-trend" aria-label="店の傾向">
-    <div class="card">
-      <h2>店全体の日別平均差枚</h2>
-      <p class="support">棒をタップすると日付と値が出ます。もう一度タップでその日の島図へ。</p>
-      <div class="seg" role="group" aria-label="表示期間" id="segRange" style="margin-bottom:8px">
-        <button type="button" data-range="30" aria-pressed="true"><svg class="ms"><use href="#i-check"/></svg>直近30日</button>
-        <button type="button" data-range="all" aria-pressed="false"><svg class="ms"><use href="#i-check"/></svg>全期間</button>
-      </div>
-      <div class="chartbox"><svg id="dayChart" role="img" aria-label="日別平均差枚の棒グラフ"></svg></div>
-      <div class="readout num" id="dayReadout"></div>
-    </div>
-    <div class="card">
-      <h2>日付の末尾ごと</h2>
-      <p class="support">全台平均差枚。今日の末尾を濃く表示しています。</p>
-      <div class="chartbox"><svg id="tailChart" role="img" aria-label="日付末尾別の平均差枚"></svg></div>
-      <div class="readout" id="tailNote"></div>
-    </div>
-    <div class="card">
-      <h2>曜日ごと</h2>
-      <p class="support">全台平均差枚。今日の曜日を濃く表示しています。</p>
-      <div class="chartbox"><svg id="wdChart" role="img" aria-label="曜日別の平均差枚"></svg></div>
-      <div class="readout" id="wdNote"></div>
-    </div>
-    <div class="card">
-      <h2>前日に出た台の翌日</h2>
-      <p class="support">翌日の差枚と、その日の全台平均との差（枚/台）。前日+3000枚超を狙わない根拠です。</p>
-      <table class="num">
-        <thead><tr><th>前日の差枚</th><th>8〜9月</th><th>10〜11月</th></tr></thead>
-        <tbody>
-          <tr><td>−2000〜0</td><td>+153</td><td>+52</td></tr>
-          <tr><td>0〜+2000</td><td>+65</td><td>+25</td></tr>
-          <tr><td>+2000〜+5000</td><td>−21</td><td>−92</td></tr>
-          <tr><td>+5000〜+10000</td><td>−724</td><td>−223</td></tr>
-          <tr><td>+10000超（件数少）</td><td>+1920</td><td>−286</td></tr>
-        </tbody>
-      </table>
+      <div class="rows day-list" id="dayList"></div>
     </div>
   </section>
 
-  <!-- 解説 -->
-  <section class="view about" id="v-about" aria-label="解説">
-    <div class="card">
-      <h2>狙い度の決め方</h2>
-      <h3>狙わない台</h3>
-      <p>前日の差枚が+3000枚を超えた台は、据え置き・上げを狙わない方針で、候補から外しています。島図や一覧では⚠マークを付けています。</p>
-      <h3>1〜3台を打つとき</h3>
-      <p>slot-eye「狙い方別平均（過去90日）」に当てはめた期待機械割の順位と、直近7日の平均回転数が少ない順位を、同じ重みで足しています。</p>
-      <h3>5台以上を押さえるとき</h3>
-      <p>上の表の順位に、低稼働（×0.5）と連続マイナス日数（×0.5）を足し、連続プラス日数（×0.5）を引いています。</p>
-      <h3>データの扱い</h3>
-      <p>差枚は全日使います。回転数は1万G以上の日をデータなしとして扱います（前日分の加算が疑われるため）。「隣の台」は実際の島図で判定し、788と800は隣、780と781は通路をはさんだ向かいとしています。</p>
+  <!-- 説明 -->
+  <section class="view" id="v-about" hidden>
+    <div class="block">
+      <h2 class="block-title">AI Recommend</h2>
+      <p>翌日に出そうな台を5台選びます。「1〜3台を打つ」と「5台以上を押さえる」で順位の付け方が違います。前日+3,000枚超の台は、据え置き・上げを狙わない方針で候補から外します。</p>
     </div>
-    <div class="card">
-      <h2>過去日での成績</h2>
-      <p class="support">その日より前のデータだけで順位を出し、上位台の翌日差枚がその日の全台平均を何枚上回ったか（枚/台）。前日+3000枚超の除外を入れた結果です。</p>
-      <table class="num">
-        <thead><tr><th></th><th>9/3〜9/23</th><th>10/29〜11/20</th></tr></thead>
-        <tbody>
-          <tr><td>1〜3台用 上位1台</td><td>+727</td><td>+1092</td></tr>
-          <tr><td>1〜3台用 上位3台</td><td>+817</td><td>+1101</td></tr>
-          <tr><td>5台以上用 上位5台</td><td>+785</td><td>+831</td></tr>
-        </tbody>
-      </table>
-      <p>誤差は1台で±700〜850枚あります。90日表は検証期間の結果も含んでいるため、実際の効き目はこれより小さめと考えてください。機械学習（100通りの探索・勾配ブースティング）も試しましたが、学習していない期間ではこの単純な形に負けました。</p>
+    <div class="block">
+      <h2 class="block-title">マップの見方</h2>
+      <ul class="plain">
+        <li><b style="color:var(--ai-ring)">緑の照準マーク</b> AI Recommendの台。数字が順位、1位は外枠付き</li>
+        <li><b>青の濃さ</b> 明日は狙い度、過去データはその日の差枚</li>
+        <li><b>⚠と斜線</b> 前日+3,000枚超で狙わない台</li>
+        <li><b>過去データ</b> 当たり(+2,000枚超)は塗り、外れは白抜きのマーク</li>
+      </ul>
     </div>
-    <div class="card">
-      <h2>データの更新</h2>
-      <ol>
-        <li>slot-eye「詳細」タブの台別表から、新しい日の行を <code>kabaneri_history.txt</code> に追記</li>
-        <li>日別の平均差枚・平均回転数が画面の値と一致するか確認</li>
-        <li><code>python3 tools/build_data.py</code> を実行してpush</li>
-      </ol>
-      <p>データ：slot-eye 台別データ（差枚・回転数）。<a href="https://github.com/Sat0121/asabu-kabaneri" style="color:var(--md-sys-color-primary)">GitHub</a></p>
-      <p>過去の傾向をまとめたもので、結果を保証するものではありません。</p>
+    <div class="block">
+      <h2 class="block-title">決め方（麻生ハッピー）</h2>
+      <p><b>1〜3台用</b>：slot-eye「狙い方別平均（過去90日）」に当てはめた期待機械割の順位と、直近7日の平均回転数の少なさの順位を同じ重みで足します。</p>
+      <p><b>5台以上用</b>：表の順位に、低稼働（×0.5）と連続マイナス日数（×0.5）を足し、連続プラス日数（×0.5）を引きます。</p>
+      <p class="note">「隣の台」は実際の島図で判定（788と800は隣、780と781は通路をはさんだ向かい）。回転数は1万G以上の日をデータなしとして扱います。</p>
     </div>
+    <div class="block">
+      <h2 class="block-title">過去日での成績</h2>
+      <p class="note">その日より前のデータだけで順位を出し、上位台の差枚がその日の全台平均を何枚上回ったか（枚/台）。9/3〜9/23：1〜3台用 上位3台 +817、5台以上用 上位5台 +785。10/29〜11/20：同 +1101、+831。誤差は1台で±700〜850枚。90日表は検証期間の結果も含むため、実際の効き目は小さめと考えてください。打率は「過去データ」タブに出ています。</p>
+    </div>
+    <div class="block">
+      <h2 class="block-title">注意</h2>
+      <p class="note">スロットの結果は設定以外のブレが大きく、当たらない日の方が多いです。データはslot-eyeから取得。<a href="https://github.com/Sat0121/asabu-kabaneri">GitHub</a></p>
+    </div>
+
   </section>
 </main>
 
-<div class="navbar"><nav aria-label="画面の切り替え">
-  <a href="#picks" data-view="picks"><span class="pill"><svg class="ms o" aria-hidden="true"><use href="#i-flag"/></svg><svg class="ms f" aria-hidden="true"><use href="#i-flag-fill"/></svg></span>狙い台</a>
-  <a href="#map" data-view="map"><span class="pill"><svg class="ms o" aria-hidden="true"><use href="#i-grid_view"/></svg><svg class="ms f" aria-hidden="true"><use href="#i-grid_view-fill"/></svg></span>島図</a>
-  <a href="#trend" data-view="trend"><span class="pill"><svg class="ms o" aria-hidden="true"><use href="#i-bar_chart"/></svg><svg class="ms f" aria-hidden="true"><use href="#i-bar_chart-fill"/></svg></span>傾向</a>
-  <a href="#about" data-view="about"><span class="pill"><svg class="ms o" aria-hidden="true"><use href="#i-menu_book"/></svg><svg class="ms f" aria-hidden="true"><use href="#i-menu_book-fill"/></svg></span>解説</a>
-</nav></div>
+<aside class="sheet" id="sheet" hidden aria-live="polite"></aside>
 
-<div class="scrim" id="scrim"></div>
-<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-hidden="true">
-  <div class="handle"></div>
-  <div id="sheetBody"></div>
-</section>
+<nav class="tabs" aria-label="画面"><div>
+  <button type="button" data-v="next"><span class="ind"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".8"/></svg></span><span>明日の狙い台</span></button>
+  <button type="button" data-v="past"><span class="ind"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></span><span>過去データ</span></button>
+  <button type="button" data-v="about"><span class="ind"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg></span><span>Recommendの説明</span></button>
+</div></nav>
 
-<script type="module">
-const HALL={"id": "asabu", "data": "data.json", "sub": "麻生ハッピー・スマスロ③", "whereL": "781側の列", "whereR": "756側の列", "headL": "781〜815", "headR": "756〜780", "counter": "カウンター側", "aisle": "通路", "top": "", "emptyL": "", "from": ""};
-import {argbFromHex,hexFromArgb,Blend,SchemeTonalSpot,Hct,MaterialDynamicColors as MDC} from "./vendor/mcu.min.js";
-const $=id=>document.getElementById(id);
-const icon=(n,c="ms")=>`<svg class="${c}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+<script>
+const HALL = {"id": "asabu", "data": "data.json", "whereL": "781側の列", "whereR": "756側の列", "headL": "781〜815", "headR": "756〜780", "top": "", "counter": "カウンター側", "aisle": "通路", "emptyL": "", "from": "カウンター側から"};
+const NS = "http://www.w3.org/2000/svg";
+const $ = id => document.getElementById(id);
+const WD = "日月火水木金土";
+const HIT = 2000;          // 「当たり」= その日+2,000枚超
+const fmt = v => v == null ? "—" : (v > 0 ? "+" : v < 0 ? "−" : "±") + Math.abs(Math.round(v)).toLocaleString("ja-JP");
+const kfmt = v => v == null ? "—" : Math.abs(v) >= 1000 ? (v > 0 ? "+" : "−") + (Math.abs(v) / 1000).toFixed(1) + "k" : fmt(v);
+const md = s => { const [, m, d] = s.split("-").map(Number); return `${m}/${d}`; };
+const wdOf = s => WD[new Date(s + "T00:00:00").getDay()];
+function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function h(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+const store = { get(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
 
-/* ---------- Material You テーマ ---------- */
-const SEEDS=[["#2c638b","ブルー"],["#8b5000","アンバー"],["#6750a4","パープル"],["#386a20","グリーン"],["#b3261e","レッド"],["#006a6a","ティール"]];
-const store={get(k,d){try{return localStorage.getItem(k)??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
-let seed=store.get("kb-seed","#2c638b"), themeMode=store.get("kb-theme","auto");
-const mq=matchMedia("(prefers-color-scheme: dark)");
-const isDark=()=>themeMode==="dark"||(themeMode==="auto"&&mq.matches);
-const TOKENS=["primary","onPrimary","primaryContainer","onPrimaryContainer","secondaryContainer","onSecondaryContainer","tertiaryContainer","onTertiaryContainer","error","errorContainer","onErrorContainer",
- "surface","onSurface","onSurfaceVariant","surfaceContainerLowest","surfaceContainerLow","surfaceContainer","surfaceContainerHigh","surfaceContainerHighest","outline","outlineVariant"];
-const kebab=s=>s.replace(/[A-Z]/g,m=>"-"+m.toLowerCase());
-function heat(hex,dark){ const h=Hct.fromInt(Blend.harmonize(argbFromHex(hex),argbFromHex(seed))); h.tone=dark?62:50; h.chroma=Math.max(h.chroma,60); return hexFromArgb(h.toInt()); }
-function applyTheme(){
-  const dark=isDark(); const s=new SchemeTonalSpot(Hct.fromInt(argbFromHex(seed)),dark,0); const r=document.documentElement.style;
-  TOKENS.forEach(t=>r.setProperty("--md-sys-color-"+kebab(t),hexFromArgb(MDC[t].getArgb(s))));
-  r.setProperty("--heat-hot",heat("#e5484d",dark)); r.setProperty("--heat-cold",heat("#2f6fdb",dark));
-  r.setProperty("--heat-mid",hexFromArgb(MDC.surfaceContainerHighest.getArgb(s))); r.colorScheme=dark?"dark":"light";
-  document.querySelector('meta[name="theme-color"]').content=hexFromArgb(MDC.surface.getArgb(s));
-  if(D) renderAll();
+let D, N, UNITS, PAST, PASTIDX;
+const state = { view: "next", model: store.get("kb-model", "r3"), pastTab: "map", day: 0, sel: null, sort: "d30" };
+const U = u => D.units[u];
+const rankKey = () => state.model === "r3" ? "rank3" : "rank4";
+const scoreKey = () => state.model === "r3" ? "v3" : "v4";
+const order = () => UNITS.filter(u => !U(u).excluded).sort((a, b) => U(a)[rankKey()] - U(b)[rankKey()]);
+const RECO = () => order().slice(0, 5);
+const prev = u => U(u).diff[N - 1];
+const sum = a => a.reduce((x, y) => x + (y ?? 0), 0);
+const dayAvg = i => D.dayAvg[i];
+function where(u) {
+  const [L, R] = D.columns, i = L.indexOf(u), j = R.indexOf(u);
+  return i >= 0 ? `${HALL.whereL}・${HALL.from}${i + 1}台目` : `${HALL.whereR}・${HALL.from}${j + 1}台目`;
 }
-mq.addEventListener("change",()=>{ if(themeMode==="auto") applyTheme(); });
+function nextDate() { const t = new Date(D.asof + "T00:00:00"); t.setDate(t.getDate() + 1); return t; }
 
-/* ---------- 共通 ---------- */
-const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const fmtDate=s=>{const [,m,d]=s.split("-");return (+m)+"/"+(+d);};
-const WD="日月火水木金土";
-const sgn=v=>(v>0?"+":v<0?"−":"±")+Math.abs(Math.round(v)).toLocaleString();
-const kfmt=v=>(v>0?"+":v<0?"−":"")+(Math.abs(v)>=1000?(Math.abs(v)/1000).toFixed(1)+"k":Math.abs(Math.round(v)));
-const rgb=h=>{h=h.replace("#","");return [0,2,4].map(i=>parseInt(h.substr(i,2),16));};
-const mix=(a,b,t)=>{const A=rgb(a),B=rgb(b);return A.map((x,i)=>Math.round(x+(B[i]-x)*t));};
-const lum=([r,g,b])=>{const f=c=>{c/=255;return c<=.03928?c/12.92:((c+.055)/1.055)**2.4};return .2126*f(r)+.7152*f(g)+.0722*f(b);};
-function heatColor(t){ t=Math.max(-1,Math.min(1,t)); const c=t>=0?mix(css("--heat-mid"),css("--heat-hot"),t):mix(css("--heat-mid"),css("--heat-cold"),-t);
-  const L=lum(c); return {bg:`rgb(${c.join(",")})`,ink:(1.05/(L+.05))>((L+.05)/.05)?"#ffffff":"#111418"}; }
+/* ---------- 色 ---------- */
+const TIER = ["--h1", "--h2", "--h3", "--h4"];
+function tierScore(u) {            // 明日: 狙い度の順位で4段階
+  const o = order(), r = o.indexOf(u); if (r < 0) return 0;
+  const q = r / o.length; return q < .2 ? 3 : q < .45 ? 2 : q < .75 ? 1 : 0;
+}
+function tierDiff(v) { return v == null ? -1 : v >= 5000 ? 3 : v >= HIT ? 2 : v >= 0 ? 1 : 0; }
+const fillOf = t => t < 0 ? ["var(--none)", "var(--none-ink)"] : [`var(${TIER[t]})`, `var(${TIER[t]}-ink)`];
 
-let D=null,N,UNITS,wide=store.get("kb-wide","0")==="1",mode="rank",dayIdx=0,sel=null,range="30";
-const U=u=>D.units[u];
-const sum=(u,n)=>U(u).diff.slice(-n).reduce((a,b)=>a+(b??0),0);
-const sc=u=>wide?U(u).v4:U(u).v3;
-const rk=u=>wide?U(u).rank4:U(u).rank3;
-const prev=u=>U(u).diff[N-1]??0;
-const WARN=3000;
-const hot=u=>prev(u)>=WARN;   // 前日+3000枚以上 = 据え置き・上げは狙わない
-const badge=()=>`<span class="warnbadge" title="前日+${WARN.toLocaleString()}枚以上">${icon("warning-fill")}</span>`;
-const scoreT=u=>{ const xs=UNITS.filter(x=>!U(x).excluded).map(x=>Math.abs(sc(x))); return sc(u)/Math.max(...xs); };
-function where(u){ const [L,R]=D.columns; const i=L.indexOf(u); const j=R.indexOf(u);
-  const fr=HALL.from||"手前から"; return i>=0?`${HALL.whereL}・${fr}${i+1}台目`:`${HALL.whereR}・${fr}${j+1}台目`; }
-function order(){ return UNITS.filter(u=>!U(u).excluded).sort((a,b)=>rk(a)-rk(b)); }
-function reasons(u){ const x=U(u), r=[];
-  if(HALL.id==="eagle"){
-    if(!wide) r.push(`${icon("bar_chart")}AI ${Math.round(x.ai*100)}点`);
-    if(x.had1500) r.push("5日内に+1500超");
-    if(x.g5!=null) r.push(`${icon("trending_down")}5日平均 ${x.g5.toLocaleString()}G`);
-    r.push(`表 ${x.table.toFixed(1)}%`);
-    if(x.nbBest1) r.push("前日1位の隣");
-    if(x.bona1!=null) r.push(`前日ボーナス${x.bona1}回`);
-  } else {
-  r.push(`${icon("trending_down")}7日平均 ${x.g7.toLocaleString()}G`);
-  r.push(`表 ${x.table.toFixed(1)}%`); }
-  if(x.minus>=2) r.push(`${x.minus}日連続マイナス`);
-  r.push(`前日 ${kfmt(prev(u))}`);
-  return r.map(t=>`<span class="tag">${t}</span>`).join(""); }
-
-/* ---------- 狙い台 ---------- */
-function renderPicks(){
-  document.querySelectorAll("#segCount button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.wide==="1")===wide?"true":"false"));
-  const o=order(); const nMain=wide?5:3;
-  $("picksTitle").textContent=wide?"押さえたい台":"本命";
-  $("picksNote").textContent=`候補${o.length}台中`;
-  const box=$("picks"); box.innerHTML="";
-  o.slice(0,nMain+2).forEach((u,i)=>{ const c=heatColor(scoreT(u));
-    const b=document.createElement("button"); b.type="button"; b.className="pick"+(i<nMain?" main":"");
-    b.innerHTML=`<span class="rank">${i+1}</span><span><span class="unit">${hot(u)?badge()+" ":""}${u}</span><span class="where">${where(u)}</span><span class="reasons">${reasons(u)}</span></span><span class="heatdot" style="background:${c.bg}"></span>`;
-    b.setAttribute("aria-label",`${i+1}位 ${u}番 ${where(u)}`); b.addEventListener("click",()=>openUnit(u)); box.appendChild(b); });
-  const mini=(list,el,fn)=>{ el.innerHTML=""; list.forEach(u=>{ const b=document.createElement("button"); b.type="button"; b.innerHTML=fn(u); b.addEventListener("click",()=>openUnit(u)); el.appendChild(b); }); };
-  mini(o.slice(-5).reverse(),$("avoid"),u=>`${hot(u)?badge():""}${u}<small>${rk(u)}位</small>`);
-  const ex=UNITS.filter(u=>U(u).excluded).sort((a,b)=>prev(b)-prev(a));
-  $("exNote").textContent=`前日+${D.excludeThreshold.toLocaleString()}枚超・${ex.length}台`;
-  mini(ex,$("exList"),u=>`${hot(u)?badge():""}${u}<small>前日${kfmt(prev(u))}</small>`);
-  if(!ex.length) $("exList").innerHTML=`<span class="support">該当なし</span>`;
-  // 今日の状況
-  const now=new Date(), td=now.getDate()%10, wd=now.getDay();
-  const avg=D.dayAvg.reduce((a,b)=>a+b,0)/N;
-  const byTail=D.days.map((d,i)=>[+d.split("-")[2]%10,D.dayAvg[i]]).filter(x=>x[0]===td).map(x=>x[1]);
-  const byWd=D.days.map((d,i)=>[new Date(d).getDay(),D.dayAvg[i]]).filter(x=>x[0]===wd).map(x=>x[1]);
-  const m=a=>a.reduce((x,y)=>x+y,0)/a.length;
-  const judge=v=>v>avg+150?"強め":v<avg-150?"弱め":"ふつう";
-  const iso=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
-  const hol=D.holidays&&D.holidays[iso], HS=D.holStats;
-  const second=hol&&HS?`<div><dt>祝日（${hol}）</dt><dd>${judge(HS["祝日"].median)} <small>中央値 ${sgn(HS["祝日"].median)}枚・土日は${sgn(HS["土日"].median)}</small></dd></div>`
-    :`<div><dt>${WD[wd]}曜日</dt><dd>${judge(m(byWd))} <small>平均 ${sgn(m(byWd))}枚</small></dd></div>`;
-  $("context").innerHTML=`<div><dt>今日 ${now.getMonth()+1}/${now.getDate()}（末尾${td}）</dt><dd>${judge(m(byTail))} <small>平均 ${sgn(m(byTail))}枚</small></dd></div>${second}`;
+/* ---------- AIマーク ---------- */
+function aiMark(parent, cx, cy, rank, miss) {
+  const g = el("g", { class: "aimark" + (rank === 1 ? " top1" : "") + (miss ? " miss" : "") }, parent);
+  const w = 46, hgt = 22, x = cx - w / 2, y = cy - hgt / 2;
+  if (rank === 1) el("rect", { class: "halo", x: x - 3, y: y - 3, width: w + 6, height: hgt + 6, rx: (hgt + 6) / 2 }, g);
+  el("rect", { class: "cap", x, y, width: w, height: hgt, rx: hgt / 2 }, g);
+  if (miss) el("rect", { class: "cap-ring", x, y, width: w, height: hgt, rx: hgt / 2 }, g);
+  const tx = x + 13;  // 照準
+  el("circle", { class: "tgt", cx: tx, cy, r: 6 }, g);
+  el("circle", { class: "tgt-dot", cx: tx, cy, r: 1.8 }, g);
+  el("path", { class: "tgt", d: `M${tx} ${cy - 9}v3M${tx} ${cy + 6}v3M${tx - 9} ${cy}h3M${tx + 6} ${cy}h3` }, g);
+  const t = el("text", { x: x + 32, y: cy }, g); t.textContent = rank;
+  return g;
+}
+function legendMark(rank, miss) {
+  const s = el("svg", { viewBox: "0 0 52 28", width: 52, height: 28, "aria-hidden": "true" });
+  aiMark(s, 26, 14, rank, miss); return s;
 }
 
 /* ---------- 島図 ---------- */
-const MODES={
-  rank:{t:u=>scoreT(u),txt:u=>rk(u)+"位",lo:"冷",hi:"熱",note:()=>(wide?"5台以上":"1〜3台")+"を打つ場合の狙い度（候補"+order().length+"台中の順位）。"},
-  d7:{t:u=>sum(u,7)/12000,txt:u=>kfmt(sum(u,7)),lo:"−12k",hi:"+12k",note:()=>fmtDate(D.days[N-7])+"〜"+fmtDate(D.asof)+"の差枚合計。"},
-  d30:{t:u=>sum(u,30)/20000,txt:u=>kfmt(sum(u,30)),lo:"−20k",hi:"+20k",note:()=>"直近30日（データのある日）の差枚合計。"},
-  day:{t:u=>(U(u).diff[dayIdx]??0)/8000,txt:u=>kfmt(U(u).diff[dayIdx]??0),lo:"−8k",hi:"+8k",note:()=>fmtDate(D.days[dayIdx])+"の差枚。全台平均 "+sgn(D.dayAvg[dayIdx])+"枚。"}
-};
-function renderFloor(){
-  const f=$("floor"); f.innerHTML=""; const M=MODES[mode]; const [L,R]=D.columns; const n=Math.max(L.length,R.length);
-  const showEx=mode==="rank";
-  const wIdx=mode==="day"?dayIdx-1:N-1;   // ⚠の基準日：日別なら選んだ日の前日、それ以外は最新日
-  const hotHere=u=>wIdx>=0&&(U(u).diff[wIdx]??0)>=WARN;
-  if(HALL.top) f.insertAdjacentHTML("beforeend",`<div class="topside">${HALL.top}</div>`);
-  f.insertAdjacentHTML("beforeend",`<div class="frow head"><span>${HALL.headL}</span><span></span><span>${HALL.headR}</span></div>`);
-  const cell=u=>{ const b=document.createElement("button"); b.type="button"; b.className="cell";
-    if(!D.units[u]){ b.disabled=true; b.innerHTML=`<b>${u}</b><span>—</span>`; return b; }
-    const w=hotHere(u)?badge():"";
-    if(showEx&&U(u).excluded){ b.classList.add("ex"); b.innerHTML=`<b>${w}${u}</b><span>狙わない</span>`; }
-    else { const c=heatColor(M.t(u)); b.style.background=c.bg; b.style.color=c.ink; b.innerHTML=`<b>${w}${u}</b><span>${M.txt(u)}</span>`; }
-    b.setAttribute("aria-pressed",sel===u?"true":"false"); b.setAttribute("aria-label",`${u}番 ${b.textContent.slice(String(u).length)}${hotHere(u)?" 危険：前日+"+WARN+"枚以上":""}`);
-    b.addEventListener("click",()=>openUnit(u)); return b; };
-  for(let i=n-1;i>=0;i--){ const r=document.createElement("div"); r.className="frow";
-    r.appendChild(L[i]?cell(L[i]):Object.assign(document.createElement("span"),HALL.emptyL?{className:"emptylabel",textContent:HALL.emptyL}:{}));
-    const a=document.createElement("span"); a.className="aisle"; if(i===Math.floor(n/2)) a.textContent=HALL.aisle; r.appendChild(a);
-    r.appendChild(R[i]?cell(R[i]):document.createElement("span")); f.appendChild(r); }
-  f.insertAdjacentHTML("beforeend",`<div class="counter">${HALL.counter}</div>`);
-  $("legLo").textContent=M.lo; $("legHi").textContent=M.hi;
-  $("legBar").style.background=`linear-gradient(90deg,${css("--heat-cold")},${css("--heat-mid")},${css("--heat-hot")})`;
-  $("exKey").style.display=$("exKeyLabel").style.display=showEx?"":"none";
-  $("modeNote").textContent=M.note();
-  $("warnLegend").style.display=wIdx>=0?"":"none";
-  $("warnLegendText").textContent=wIdx>=0?(mode==="day"?`前日（${fmtDate(D.days[wIdx])}）に+${WARN.toLocaleString()}枚以上だった台`:`前日（${fmtDate(D.asof)}）+${WARN.toLocaleString()}枚以上。据え置き・上げは狙わない`):"";
-  document.querySelectorAll("#segMode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.mode===mode?"true":"false"));
-  $("dayctl").classList.toggle("on",mode==="day");
+// opt: fill(u)->tier, val(u)->text, mark(u)->{rank, miss}|null, ex(u)->bool
+function drawMap(svg, opt) {
+  svg.textContent = "";
+  const [L, R] = D.columns, n = Math.max(L.length, R.length);
+  const W = 360, CW = 160, AISLE = W - 2 * CW, CH = 36, GAP = 5;
+  const top = HALL.top ? 26 : 0, headY = top + 14, y0 = headY + 12;
+  const Hgt = y0 + n * (CH + GAP) + 30;
+  svg.setAttribute("viewBox", `0 0 ${W} ${Hgt}`);
+  const defs = el("defs", {}, svg);
+  const pat = el("pattern", { id: "hatch-" + svg.id, width: 8, height: 8, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, defs);
+  el("rect", { width: 8, height: 8, fill: "var(--surface-c-high)" }, pat);
+  el("line", { x1: 0, y1: 0, x2: 0, y2: 8, stroke: "var(--outline-var)", "stroke-width": 4 }, pat);
+  if (HALL.top) { el("text", { class: "side", x: W / 2, y: 11 }, svg).textContent = HALL.top; el("line", { class: "side-line", x1: 0, x2: W, y1: top - 2, y2: top - 2 }, svg); }
+  el("text", { class: "colhead", x: CW / 2, y: headY }, svg).textContent = HALL.headL;
+  el("text", { class: "colhead", x: W - CW / 2, y: headY }, svg).textContent = HALL.headR;
+  if (HALL.aisle) el("text", { class: "side", x: W / 2, y: y0 + n * (CH + GAP) / 2, transform: `rotate(-90 ${W / 2} ${y0 + n * (CH + GAP) / 2})` }, svg).textContent = HALL.aisle;
+  const cell = (u, x, y) => {
+    const g = el("g", { class: "cell", tabindex: 0, role: "button" }, svg);
+    if (!U(u)) { el("rect", { class: "base", x, y, width: CW, height: CH, rx: 10, fill: "var(--none)" }, g); el("text", { class: "no", x: x + 12, y: y + CH / 2, fill: "var(--none-ink)" }, g).textContent = u; return; }
+    const ex = opt.ex && opt.ex(u), [bg, ink] = fillOf(ex ? -1 : opt.fill(u));
+    if (ex) g.classList.add("ex"); if (state.sel === u) g.classList.add("sel");
+    el("rect", { class: "base", x, y, width: CW, height: CH, rx: 10, fill: ex ? `url(#hatch-${svg.id})` : bg }, g);
+    el("text", { class: "no", x: x + 12, y: y + CH / 2, fill: ink }, g).textContent = (opt.warn && opt.warn(u) ? "⚠" : "") + u;
+    el("text", { class: "val", x: x + CW - 10, y: y + CH / 2, fill: ink }, g).textContent = ex ? "狙わない" : opt.val(u);
+    const m = opt.mark && opt.mark(u);
+    if (m) aiMark(g, x + CW * 0.55, y + CH / 2, m.rank, m.miss);
+    g.setAttribute("aria-label", `${u}番 ${ex ? "狙わない" : opt.val(u)}${m ? ` AI Recommend ${m.rank}位` : ""}`);
+    g.addEventListener("click", () => openSheet(u));
+    g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openSheet(u); } });
+  };
+  for (let i = 0; i < n; i++) {
+    const y = y0 + (n - 1 - i) * (CH + GAP);
+    if (L[i]) cell(L[i], 0, y);
+    else if (HALL.emptyL) { el("rect", { class: "empty", x: 1, y: y + 1, width: CW - 2, height: CH - 2, rx: 10 }, svg); el("text", { class: "empty-label", x: CW / 2, y: y + CH / 2 }, svg).textContent = HALL.emptyL; }
+    if (R[i]) cell(R[i], W - CW, y);
+  }
+  const by = y0 + n * (CH + GAP) + 2;
+  el("line", { class: "side-line", x1: 0, x2: W, y1: by, y2: by }, svg);
+  el("text", { class: "side", x: W / 2, y: by + 14 }, svg).textContent = HALL.counter;
 }
 
-/* ---------- ボトムシート ---------- */
-let lastFocus=null;
-function openSheet(html){ lastFocus=document.activeElement; $("sheetBody").innerHTML=html; $("sheet").classList.add("open"); $("sheet").setAttribute("aria-hidden","false"); $("scrim").classList.add("open"); document.body.style.overflow="hidden";
-  const c=$("sheet").querySelector("[data-close]"); c&&c.addEventListener("click",closeSheet); setTimeout(()=>c&&c.focus(),60); }
-function closeSheet(){ $("sheet").classList.remove("open"); $("sheet").setAttribute("aria-hidden","true"); $("scrim").classList.remove("open"); document.body.style.overflow=""; lastFocus&&lastFocus.focus&&lastFocus.focus(); }
-$("scrim").addEventListener("click",closeSheet);
-document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeSheet(); });
-const closeBtn=`<button class="icon-btn" type="button" aria-label="閉じる" data-close>${icon("close")}</button>`;
+/* ---------- 明日の狙い台 ---------- */
+function reasons(u) {
+  const x = U(u), r = [];
+  if (HALL.id === "eagle") {
+    if (x.had1500) r.push("5日内に+1500超");
+    if (x.g5 != null) r.push(`5日平均 ${x.g5.toLocaleString()}G`);
+    if (x.nbBest1) r.push("前日1位の隣");
+    if (x.bona1 != null) r.push(`前日ボーナス${x.bona1}回`);
+  } else {
+    r.push(`7日平均 ${x.g7.toLocaleString()}G`);
+    if (x.minus >= 2) r.push(`${x.minus}日連続マイナス`);
+  }
+  r.push(`表 ${x.table.toFixed(1)}%`);
+  r.push(`前日 ${fmt(prev(u))}`);
+  return r;
+}
+function renderModelSeg() {
+  document.querySelectorAll("#modelSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === state.model ? "true" : "false"));
+}
+function renderReco() {
+  const box = $("reco"); box.textContent = "";
+  const t = nextDate(), reco = RECO();
+  const head = h("div", "ai-head"); head.append(h("h2", "block-title", "AI Recommend"), h("span", "label", `${t.getMonth() + 1}/${t.getDate()}（${WD[t.getDay()]}）向け · ${state.model === "r3" ? "1〜3台用" : "5台以上用"}`));
+  box.appendChild(head);
+  const chips = h("div", "chips");
+  reco.forEach((u, i) => {
+    const b = h("button", "chip" + (i === 0 ? " first" : "")); b.type = "button";
+    if (i === 0) { b.append(h("span", "rank", "1位"), h("span", "cno", u), h("small", "", `前日 ${fmt(prev(u))}`)); }
+    else { b.append(h("span", "cno", u), h("small", "", `${i + 1}位 · ${kfmt(prev(u))}`)); }
+    b.setAttribute("aria-label", `${i + 1}位 ${u}番 ${where(u)}`);
+    b.addEventListener("click", () => openSheet(u)); chips.appendChild(b);
+  });
+  box.appendChild(chips);
+  const nMain = state.model === "r3" ? 3 : 5;
+  box.appendChild(h("p", "ai-sum", state.model === "r3" ? "1〜3台打つなら上から順に。4・5位は控え。" : "5台を押さえる前提の順位です。"));
+  // 根拠
+  const w = $("recoWhy"); w.textContent = "";
+  w.append(h("h2", "block-title", "選んだ理由"));
+  const rows = h("div", "rows recolist");
+  reco.forEach((u, i) => {
+    const r = h("button", "row"); r.type = "button";
+    const tg = h("div", "tags"); reasons(u).forEach(t => tg.appendChild(h("span", "tag" + (/前日1位|\+1500|連続/.test(t) ? "" : " out"), t)));
+    const mid = h("div"); mid.append(h("div", "why", where(u)), tg);
+    r.append(h("span", "pos", i + 1), h("span", "num", u), mid);
+    r.addEventListener("click", () => openSheet(u)); rows.appendChild(r);
+  });
+  w.appendChild(rows);
+  // その他
+  const o = $("others"); o.textContent = "";
+  const all = order();
+  o.append(h("h2", "block-title", "6位以下と、狙わない台"));
+  const mk = (list, fn) => { const m = h("div", "mini"); list.forEach(u => { const b = h("button"); b.type = "button"; b.append(u, h("small", "", fn(u))); b.addEventListener("click", () => openSheet(u)); m.appendChild(b); }); return m; };
+  o.append(h("span", "label", "6〜10位"), mk(all.slice(5, 10), u => `${U(u)[rankKey()]}位`));
+  o.append(h("span", "label", "避けたい台（下位5台）"), mk(all.slice(-5).reverse(), u => `${U(u)[rankKey()]}位`));
+  const ex = UNITS.filter(u => U(u).excluded).sort((a, b) => prev(b) - prev(a));
+  o.append(h("span", "label", `狙わない台（前日+${D.excludeThreshold.toLocaleString()}枚超・${ex.length}台）`), ex.length ? mk(ex, u => `前日${kfmt(prev(u))}`) : h("p", "note", "該当なし"));
+}
+function renderCtx() {
+  const c = $("ctx"); c.textContent = "";
+  const t = nextDate(), td = t.getDate() % 10, wd = t.getDay();
+  const iso = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+  const avg = sum(D.dayAvg) / N, m = a => a.length ? sum(a) / a.length : avg;
+  const byTail = D.days.map((d, i) => [+d.slice(-2) % 10, D.dayAvg[i]]).filter(x => x[0] === td).map(x => x[1]);
+  const byWd = D.days.map((d, i) => [new Date(d + "T00:00:00").getDay(), D.dayAvg[i]]).filter(x => x[0] === wd).map(x => x[1]);
+  const judge = v => v > avg + 150 ? "強め" : v < avg - 150 ? "弱め" : "ふつう";
+  const hol = D.holidays && D.holidays[iso], HS = D.holStats;
+  const items = [[`末尾${td}の日`, judge(m(byTail)), `平均 ${fmt(m(byTail))}`],
+    hol && HS ? [`祝日 ${hol}`, HS["祝日"].median > HS["土日"].median + 150 ? "土日より強め" : judge(HS["祝日"].median), `中央値 ${fmt(HS["祝日"].median)}`] : [`${WD[wd]}曜日`, judge(m(byWd)), `平均 ${fmt(m(byWd))}`],
+    ["前日の全台平均", fmt(D.dayAvg[N - 1]), `${md(D.asof)}`]];
+  items.forEach(([l, v, s]) => { const d = h("div", "stat"); d.append(h("span", "label", l), h("b", "", v), h("small", "", s)); c.appendChild(d); });
+}
+function renderNextMap() {
+  const reco = RECO();
+  drawMap($("map"), {
+    fill: tierScore, val: u => `${U(u)[rankKey()]}位`, ex: u => U(u).excluded,
+    warn: u => prev(u) > D.excludeThreshold,
+    mark: u => { const r = reco.indexOf(u); return r >= 0 ? { rank: r + 1 } : null; },
+  });
+  const lg = $("legend"); lg.textContent = "";
+  const li1 = h("li"); li1.append(legendMark(1), "AI Recommend 1位"); lg.appendChild(li1);
+  const li2 = h("li"); li2.append(legendMark(2), "2〜5位"); lg.appendChild(li2);
+  [["--h4", "狙い度 上位20%"], ["--h3", "〜45%"], ["--h2", "〜75%"], ["--h1", "下位"]].forEach(([v, t]) => { const li = h("li"); const i = h("i"); i.style.background = `var(${v})`; li.append(i, t); lg.appendChild(li); });
+  $("mapNote").textContent = `マークの数字がAI Recommendの順位、右の「○位」は候補${order().length}台の中での狙い度の順位です。⚠と斜線は前日+${D.excludeThreshold.toLocaleString()}枚超で狙わない台。台をタップすると成績が出ます。`;
+}
 
-function openUnit(u){
-  sel=u; if(document.querySelector("#v-map.on")) renderFloor(); const x=U(u); const g1=x.g[N-1];
-  const why=x.why.length?x.why.map(w=>`<li>${w[0]}：${w[1].toFixed(1)}%</li>`).join(""):"<li>当てはまる条件なし</li>";
-  const status=(hot(u)?`<span class="tag warn">${icon("warning-fill")}前日+${WARN.toLocaleString()}枚以上</span>`:"")+(x.excluded?`<span class="tag warn">${icon("block")}狙わない</span>`:`<span class="tag">1〜3台用 ${x.rank3}位</span><span class="tag">5台以上用 ${x.rank4}位</span>`);
-  openSheet(`<div class="sheet-head"><div class="grow"><div class="big" id="sheetTitle">${u}番</div><div class="sub">${icon("location_on")}${where(u)}</div></div>${closeBtn}</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">${status}</div>
-    ${x.excluded?`<div class="banner warn" style="margin-top:12px">${icon("warning")}<span>前日 ${sgn(prev(u))}枚。前日+${D.excludeThreshold.toLocaleString()}枚超の台は、据え置き・上げを狙わない方針で候補から外しています。</span></div>`:""}
-    <dl class="kv">
-      <div><dt>前日の差枚</dt><dd>${sgn(prev(u))}</dd></div>
-      <div><dt>前日の回転数</dt><dd>${g1==null?"データなし":g1.toLocaleString()+"G"}</dd></div>
-      <div><dt>7日平均回転数</dt><dd>${x.g7.toLocaleString()}G</dd></div>
-      <div><dt>表の期待機械割</dt><dd>${x.table.toFixed(1)}%</dd></div>
-      <div><dt>連続マイナス／プラス</dt><dd>${x.minus}日／${x.plus}日</dd></div>
-      <div><dt>7日の差枚</dt><dd>${sgn(sum(u,7))}</dd></div>
-      <div><dt>30日の差枚</dt><dd>${sgn(sum(u,30))}</dd></div>
-      <div><dt>${N}日の差枚</dt><dd>${sgn(sum(u,N))}</dd></div>
-    </dl>
-    <div style="font-weight:500">直近30日の差枚</div>
-    <div class="chartbox"><svg id="spark" role="img" aria-label="${u}番の直近30日の差枚"></svg></div>
-    <div class="readout num" id="sparkReadout">棒をタップすると日付と差枚が出ます。</div>
-    <div style="font-size:13px;color:var(--md-sys-color-on-surface-variant);margin-top:12px">90日表で当てはまった主な条件</div><ul class="why">${why}</ul>`);
-  const vals=x.diff.slice(-30).map(v=>v??0);
-  drawBars($("spark"),vals,D.days.slice(-30),{h:150,fit:true,readout:"sparkReadout",
-    fmt:(d,v,i)=>{const g=x.g[N-30+i];return `${fmtDate(d)}（${WD[new Date(d).getDay()]}）${sgn(v)}枚・${g==null?"回転数なし":g.toLocaleString()+"G"}`;}});
+/* ---------- 過去データ ---------- */
+function pastPicks(i) { const p = PASTIDX.get(D.days[i]); return p ? p[state.model] : null; }
+function batting(lastN) {
+  const res = {};
+  ["r3", "r4"].forEach(k => {
+    let n = 0, hit = 0, rel = 0, bn = 0, bh = 0, days = 0;
+    PAST.slice(-lastN).forEach(p => {
+      const i = D.days.indexOf(p.d); if (i < 0) return;
+      const vals = UNITS.map(u => U(u).diff[i]).filter(v => v != null);
+      bn += vals.length; bh += vals.filter(v => v > HIT).length; days++;
+      p[k].forEach(u => { const v = U(u) && U(u).diff[i]; if (v == null) return; n++; if (v > HIT) hit++; rel += v - D.dayAvg[i]; });
+    });
+    res[k] = { rate: n ? hit / n : 0, base: bn ? bh / bn : 0, rel: n ? rel / n : 0, days, perDay: days ? hit / days : 0 };
+  });
+  return res;
 }
-function openPalette(){
-  const sw=SEEDS.map(([c,n])=>`<button class="swatch" type="button" data-seed="${c}" aria-label="${n}" aria-pressed="${c===seed}" style="background:${c}">${icon("check")}</button>`).join("");
-  openSheet(`<div class="sheet-head"><div class="grow"><div style="font-size:22px;font-weight:500" id="sheetTitle">テーマ</div><div class="sub">選んだ色から画面全体の配色を作ります</div></div>${closeBtn}</div>
-    <div class="swatches" style="margin-top:16px">${sw}</div>
-    <label style="display:flex;align-items:center;gap:12px;font-size:14px"><input type="color" id="seedInput" value="${seed}" style="width:48px;height:40px;border:0;background:none;padding:0">好きな色を選ぶ</label>
-    <div style="font-weight:500;margin:20px 0 8px">明るさ</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">${[["auto","brightness_auto","端末に合わせる"],["light","light_mode","ライト"],["dark","dark_mode","ダーク"]].map(([m,i,l])=>`<button class="btn" type="button" data-theme="${m}" aria-pressed="${m===themeMode}">${icon(i)}${l}</button>`).join("")}</div>`);
-  const setSeed=c=>{ seed=c; store.set("kb-seed",c); applyTheme(); document.querySelectorAll(".swatch").forEach(s=>s.setAttribute("aria-pressed",s.dataset.seed===c)); const ci=$("seedInput"); if(ci.value!==c) ci.value=c; };
-  document.querySelectorAll(".swatch").forEach(s=>s.addEventListener("click",()=>setSeed(s.dataset.seed)));
-  $("seedInput").addEventListener("input",e=>setSeed(e.target.value));
-  document.querySelectorAll("[data-theme]").forEach(b=>b.addEventListener("click",()=>{ themeMode=b.dataset.theme; store.set("kb-theme",themeMode); applyTheme(); document.querySelectorAll("[data-theme]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.theme===themeMode)); }));
+function renderBatting() {
+  const b = $("batting"); b.textContent = "";
+  const head = h("div", "ai-head"); head.append(h("h2", "block-title", "AI Recommendの打率"), h("span", "label", `+${HIT.toLocaleString()}枚超えを当たりとして`));
+  b.appendChild(head);
+  const grid = h("div", "bat");
+  const all = batting(9999), r30 = batting(30);
+  [["r3", "1〜3台用", "a"], ["r4", "5台以上用", "a2"]].forEach(([k, t, cls]) => {
+    const d = h("div", cls), A = all[k], R = r30[k];
+    const tt = h("span", "t", t);
+    const big = h("span", "big", (A.rate * 100).toFixed(1)); big.appendChild(h("small", "", "%"));
+    d.append(tt, big, h("span", "sub2", `全台平均 ${(A.base * 100).toFixed(1)}% · 平均比 ${fmt(A.rel)}枚/台 · ${A.days}日`), h("span", "sub2", `直近30日 ${(R.rate * 100).toFixed(1)}%（全台 ${(R.base * 100).toFixed(1)}%）`));
+    grid.appendChild(d);
+  });
+  b.appendChild(grid);
+  b.appendChild(h("p", "note", "過去の推奨は、その日より前のデータだけで出した順位（当日に見た場合と同じ）。上位5台で集計しています。"));
 }
-$("btnPalette").addEventListener("click",openPalette);
+function renderDates() {
+  const box = $("dates"); box.textContent = "";
+  D.days.forEach((d, i) => {
+    const b = h("button", "date" + (D.dayAvg[i] >= 500 ? " hot" : "")); b.type = "button";
+    b.append(md(d), h("span", "", `${wdOf(d)} ${kfmt(D.dayAvg[i])}`));
+    b.setAttribute("aria-pressed", i === state.day ? "true" : "false");
+    b.addEventListener("click", () => { state.day = i; renderPast(); });
+    box.appendChild(b);
+  });
+  requestAnimationFrame(() => { const s = box.children[state.day]; if (s) box.scrollLeft = state.day === N - 1 ? box.scrollWidth : s.offsetLeft - box.clientWidth / 2 + s.offsetWidth / 2; });
+}
+function renderPastMap() {
+  const i = state.day, picks = pastPicks(i) || [];
+  const st = $("dayStats"); st.textContent = "";
+  const vals = UNITS.map(u => U(u).diff[i]).filter(v => v != null), gs = UNITS.map(u => U(u).g[i]).filter(v => v != null);
+  const hits = picks.filter(u => (U(u)?.diff[i] ?? -1e9) > HIT).length;
+  [["全台平均", fmt(D.dayAvg[i]), D.dayAvg[i] >= 500], ["平均回転数", gs.length ? Math.round(sum(gs) / gs.length).toLocaleString() + "G" : "—"], ["AIの当たり", picks.length ? `${hits}/${picks.length}台` : "—", hits >= 2]]
+    .forEach(([l, v, r]) => { const d = h("div", "stat"); const b = h("b", r ? "red" : "", v); d.append(h("span", "label", l), b); st.appendChild(d); });
+  drawMap($("map2"), {
+    fill: u => tierDiff(U(u).diff[i]), val: u => kfmt(U(u).diff[i]),
+    warn: u => i > 0 && (U(u).diff[i - 1] ?? 0) > D.excludeThreshold,
+    mark: u => { const r = picks.indexOf(u); return r >= 0 ? { rank: r + 1, miss: !((U(u).diff[i] ?? -1e9) > HIT) } : null; },
+  });
+  const lg = $("legend2"); lg.textContent = "";
+  const a = h("li"); a.append(legendMark(1), "当たり"); lg.appendChild(a);
+  const b = h("li"); b.append(legendMark(1, true), "外れ"); lg.appendChild(b);
+  [["--h4", "+5,000以上"], ["--h3", "+2,000以上"], ["--h2", "0以上"], ["--h1", "マイナス"]].forEach(([v, t]) => { const li = h("li"); const ic = h("i"); ic.style.background = `var(${v})`; li.append(ic, t); lg.appendChild(li); });
+  const dp = $("dayPicks"); dp.textContent = "";
+  dp.append(h("h2", "block-title", `${md(D.days[i])} のAI Recommend`));
+  if (!picks.length) { dp.append(h("p", "note", "この日はデータの区切り直後のため、推奨を出していません。")); return; }
+  const rows = h("div", "rows past-picks");
+  picks.forEach((u, k) => {
+    const v = U(u)?.diff[i], r = h("button", "row"); r.type = "button";
+    const val = h("span", "val" + (v > HIT ? " red" : ""), fmt(v));
+    r.append(h("span", "pos", k + 1), h("span", "num", u), h("span", "why", `${(U(u)?.g[i] ?? 0).toLocaleString()}G · 平均比 ${fmt(v - D.dayAvg[i])}`), val);
+    r.addEventListener("click", () => openSheet(u)); rows.appendChild(r);
+  });
+  dp.appendChild(rows);
+}
+function strip(u) {
+  const s = el("svg", { class: "strip", viewBox: `0 0 ${N * 4} 14`, preserveAspectRatio: "none", "aria-hidden": "true" });
+  U(u).diff.forEach((v, i) => el("rect", { x: i * 4, y: 2, width: 3, height: 10, rx: 1, fill: v == null ? "var(--none)" : `var(${TIER[Math.max(0, tierDiff(v))]})` }, s));
+  return s;
+}
+const SORTS = { d30: ["30日差枚", u => sum(U(u).diff.slice(-30))], d7: ["7日差枚", u => sum(U(u).diff.slice(-7))], prev: ["前日", u => prev(u) ?? -1e9], rank: ["狙い度", u => -(U(u)[rankKey()] ?? 99)], no: ["台番号", u => -Number(u)] };
+function renderUnits() {
+  const so = $("sorts"); so.textContent = "";
+  Object.entries(SORTS).forEach(([k, [t]]) => { const b = h("button", "", t); b.type = "button"; b.setAttribute("aria-pressed", state.sort === k ? "true" : "false"); b.addEventListener("click", () => { state.sort = k; renderUnits(); }); so.appendChild(b); });
+  const f = SORTS[state.sort][1], list = [...UNITS].sort((a, b) => f(b) - f(a));
+  const box = $("unitList"); box.textContent = "";
+  list.forEach((u, i) => {
+    const r = h("button", "row"); r.type = "button";
+    const v = state.sort === "rank" ? (U(u)[rankKey()] ? `${U(u)[rankKey()]}位` : "対象外") : state.sort === "no" ? kfmt(sum(U(u).diff.slice(-30))) : kfmt(f(u));
+    r.append(h("span", "pos", i + 1), h("span", "num", u), strip(u), h("span", "val", v));
+    r.addEventListener("click", () => openSheet(u)); box.appendChild(r);
+  });
+}
+function renderDays() {
+  const s = $("dayChart"); s.textContent = "";
+  const W = 360, H = 150, mx = Math.max(...D.dayAvg.map(Math.abs), 500), zero = 75, bw = W / N;
+  el("line", { x1: 0, x2: W, y1: zero, y2: zero, stroke: "var(--outline-var)" }, s);
+  D.dayAvg.forEach((v, i) => {
+    const hh = Math.max(Math.abs(v) / mx * 65, 1);
+    const r = el("rect", { x: i * bw + .5, y: v >= 0 ? zero - hh : zero, width: Math.max(bw - 1, 1), height: hh, rx: 1, fill: v >= 500 ? "var(--primary)" : v >= 0 ? "var(--h3)" : "var(--h2)" }, s);
+    r.addEventListener("click", () => { state.day = i; state.pastTab = "map"; renderPast(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+  });
+  [0, Math.floor(N / 2), N - 1].forEach(i => { const t = el("text", { x: i === N - 1 ? W : i * bw, y: H - 2, "text-anchor": i === N - 1 ? "end" : i === 0 ? "start" : "middle" }, s); t.textContent = md(D.days[i]); });
+  const list = $("dayList"); list.textContent = "";
+  [...D.days.keys()].reverse().forEach(i => {
+    const p = PASTIDX.get(D.days[i]), picks = p ? p[state.model] : [];
+    const hits = picks.filter(u => (U(u)?.diff[i] ?? -1e9) > HIT).length;
+    const r = h("button", "row"); r.type = "button";
+    r.append(h("span", "num", `${md(D.days[i])}（${wdOf(D.days[i])}）`), h("span", "hint2" + (hits >= 2 ? " ai" : ""), picks.length ? `AI ${hits}/${picks.length}当たり` : "AI —"), h("span", "hint2", ""), h("span", "val" + (D.dayAvg[i] >= 500 ? " red" : ""), kfmt(D.dayAvg[i])));
+    r.addEventListener("click", () => { state.day = i; state.pastTab = "map"; renderPast(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+    list.appendChild(r);
+  });
+}
+function renderPast() {
+  document.querySelectorAll("#pastSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.p === state.pastTab ? "true" : "false"));
+  $("pastMap").hidden = state.pastTab !== "map"; $("pastUnits").hidden = state.pastTab !== "units"; $("pastDays").hidden = state.pastTab !== "days";
+  renderBatting();
+  if (state.pastTab === "map") { renderDates(); renderPastMap(); }
+  if (state.pastTab === "units") renderUnits();
+  if (state.pastTab === "days") renderDays();
+}
 
-/* ---------- グラフ ---------- */
-function drawBars(svg,vals,dates,o){
-  const box=svg.parentElement; const avail=Math.max(300,box.clientWidth||320);
-  const W=o.fit?avail:Math.max(avail,vals.length*(o.bw||14)),H=o.h||160,padL=36,padR=6,padT=16,padB=22;
-  const ext=Math.max(500,...vals.map(v=>Math.abs(v))); const step=ext>6000?4000:ext>3000?2000:ext>1000?1000:500; const top=Math.ceil(ext/step)*step;
-  const y=v=>padT+(H-padT-padB)*(top-v)/(2*top); const gaps=o.gaps||new Set();
-  const slots=vals.length+gaps.size*1.5; const bw=(W-padL-padR)/slots; const line=css("--md-sys-color-outline-variant");
-  const lab=v=>v===0?"0":(v>0?"+":"−")+(Math.abs(v)>=1000?Math.abs(v/1000)+"k":Math.abs(v));
-  let s=""; [top,top/2,0,-top/2,-top].forEach(v=>{ s+=`<line x1="${padL}" x2="${W-padR}" y1="${y(v)}" y2="${y(v)}" stroke="${line}" stroke-width="${v===0?1.5:.6}"/><text x="${padL-4}" y="${y(v)+3}" text-anchor="end">${lab(v)}</text>`; });
-  let slot=0; const pos=[]; vals.forEach((v,i)=>{ if(gaps.has(i)) slot+=1.5; pos.push(padL+slot*bw); slot++; });
-  if(o.avg!=null) s+=`<line x1="${padL}" x2="${W-padR}" y1="${y(o.avg)}" y2="${y(o.avg)}" stroke="${css("--md-sys-color-primary")}" stroke-dasharray="4 3" stroke-width="1.2"/><text x="${padL+2}" y="${padT-5}">点線＝全期間の平均 ${sgn(o.avg)}</text>`;
-  vals.forEach((v,i)=>{ const x=pos[i],w=Math.max(2,bw*.72),y0=y(0),y1=y(v),hh=Math.max(1,Math.abs(y1-y0)); const op=o.hl&&!o.hl(i)?.4:1;
-    s+=`<rect x="${x+(bw-w)/2}" y="${Math.min(y0,y1)}" width="${w}" height="${hh}" rx="${Math.min(3,w/3)}" fill="${v>=0?css("--heat-hot"):css("--heat-cold")}" opacity="${op}"/>`;
-    s+=`<rect class="hit" data-i="${i}" x="${x}" y="${padT}" width="${bw}" height="${H-padT-padB}" fill="transparent" style="cursor:pointer"/>`;
-    const xl=o.xlabel&&o.xlabel(i); if(xl){ const lastL=i===vals.length-1&&bw<24, firstL=i===0&&bw<24; s+=`<text x="${lastL?x+bw:firstL?x:x+bw/2}" y="${H-7}" text-anchor="${lastL?"end":firstL?"start":"middle"}">${xl}</text>`; } });
-  gaps.forEach(i=>{ s+=`<text x="${pos[i]-bw*.75}" y="${y(0)+13}" text-anchor="middle">…</text>`; });
-  svg.setAttribute("viewBox",`0 0 ${W} ${H}`); svg.setAttribute("width",W); svg.setAttribute("height",H); svg.innerHTML=s;
-  let last=-1;
-  svg.querySelectorAll(".hit").forEach(r=>{ const i=+r.dataset.i; const show=()=>{$(o.readout).textContent=o.fmt(dates[i],vals[i],i);};
-    r.addEventListener("mouseenter",show); r.addEventListener("click",()=>{ show(); if(o.onClick&&last===i) o.onClick(i); last=i; }); });
+/* ---------- 台シート ---------- */
+function spark(u) {
+  const W = 360, H = 96, zero = 66, n = Math.min(N, 40), off = N - n, mx = 12000, mn = 6000;
+  const sc = v => v >= 0 ? Math.min(v, mx) / mx * 60 : Math.max(v, -mn) / mn * 26;
+  const s = el("svg", { class: "spark", viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `${u}番の直近${n}日の差枚` });
+  el("line", { x1: 0, x2: W, y1: zero, y2: zero, stroke: "var(--line)" }, s);
+  const step = W / n, pdays = new Set(PAST.filter(p => p[state.model].includes(u)).map(p => p.d));
+  for (let k = 0; k < n; k++) {
+    const i = off + k, v = U(u).diff[i]; if (v == null) continue;
+    const hh = Math.max(Math.abs(sc(v)), 1.5), x = k * step + step / 2 - 3;
+    el("rect", { x, y: v >= 0 ? zero - hh : zero, width: 6, height: hh, rx: 2, fill: v > HIT ? "var(--primary)" : (state.view === "past" && i === state.day) ? "var(--on-surface)" : "var(--h3)" }, s);
+    if (pdays.has(D.days[i])) el("circle", { cx: x + 3, cy: 6, r: 3, fill: "var(--ai-ring)" }, s);
+  }
+  [[0, "start"], [n - 1, "end"]].forEach(([k, a]) => { const t = el("text", { x: a === "end" ? W : 0, y: H - 2, "text-anchor": a, "font-size": 9, fill: "var(--muted)" }, s); t.textContent = md(D.days[off + k]); });
+  return s;
 }
-function renderCharts(){
-  const avg=D.dayAvg.reduce((a,b)=>a+b,0)/N;
-  const from=range==="30"?Math.max(0,N-30):0;
-  const days=D.days.slice(from), vals=D.dayAvg.slice(from);
-  const gaps=new Set(); for(let i=1;i<days.length;i++){ if((new Date(days[i])-new Date(days[i-1]))/864e5>2) gaps.add(i); }
-  drawBars($("dayChart"),vals,days,{h:180,bw:range==="30"?0:9,fit:range==="30",gaps,avg,readout:"dayReadout",
-    xlabel:i=>{const d=+days[i].split("-")[2];return (i===0||d===1||d===10||d===20||i===days.length-1)?fmtDate(days[i]):"";},
-    fmt:(d,v)=>`${fmtDate(d)}（${WD[new Date(d).getDay()]}） 全台平均 ${sgn(v)}枚`,
-    onClick:i=>{ setDay(from+i); mode="day"; location.hash="#map"; }});
-  { const b=$("dayChart").parentElement; b.scrollLeft=b.scrollWidth; }
-  $("dayReadout").textContent="強かった日："+D.days.map((d,i)=>[d,D.dayAvg[i]]).sort((a,b)=>b[1]-a[1]).slice(0,4).map(x=>fmtDate(x[0])+" "+sgn(x[1])).join("、");
-  document.querySelectorAll("#segRange button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.range===range?"true":"false"));
-  const now=new Date();
-  const group=(keyFn,k)=>{ const g=Array.from({length:k},()=>[]); D.days.forEach((d,i)=>g[keyFn(d)].push(D.dayAvg[i])); return g; };
-  const tail=group(d=>+d.split("-")[2]%10,10), tv=tail.map(a=>a.reduce((x,y)=>x+y,0)/a.length), td=now.getDate()%10;
-  drawBars($("tailChart"),tv,tv.map((_,i)=>String(i)),{h:150,fit:true,avg,readout:"tailNote",xlabel:i=>String(i),hl:i=>i===td,
-    fmt:(d,v,i)=>`末尾${i}の日（${tail[i].length}日分）：全台平均 ${sgn(v)}枚`});
-  $("tailNote").textContent=`今日は末尾${td}：平均 ${sgn(tv[td])}枚（${tail[td].length}日分）。各5〜8日分しかないので目安です。`;
-  const wdg=group(d=>new Date(d).getDay(),7), wv=wdg.map(a=>a.reduce((x,y)=>x+y,0)/a.length), wd=now.getDay();
-  drawBars($("wdChart"),wv,wv.map((_,i)=>WD[i]),{h:150,fit:true,avg,readout:"wdNote",xlabel:i=>WD[i],hl:i=>i===wd,
-    fmt:(d,v,i)=>`${WD[i]}曜（${wdg[i].length}日分）：全台平均 ${sgn(v)}枚`});
-  $("wdNote").textContent=`今日は${WD[wd]}曜：平均 ${sgn(wv[wd])}枚（${wdg[wd].length}日分）。`;
+function renderSheet() {
+  const sh = $("sheet"), u = state.sel; sh.textContent = "";
+  sh.hidden = !u; $("page").classList.toggle("has-sheet", !!u);
+  if (!u) return;
+  const head = h("div", "sheet-head"); head.append(h("span", "sheet-no", u), h("span", "sheet-where", where(u)));
+  const x = U(u);
+  if (x.excluded) head.append(h("span", "tag out", "明日は狙わない"));
+  else head.append(h("span", "tag", `狙い度 ${x[rankKey()]}位`));
+  const rr = RECO().indexOf(u); if (rr >= 0) head.append(h("span", "tag", `AI Recommend ${rr + 1}位`));
+  const close = h("button", "", "×"); close.id = "sheetClose"; close.type = "button"; close.setAttribute("aria-label", "閉じる");
+  close.addEventListener("click", () => { state.sel = null; renderAll(); });
+  sh.append(head, close, spark(u));
+  const st = h("div", "stats");
+  const win = x.diff.filter(v => v != null), wins = win.filter(v => v > 0).length;
+  [["前日", fmt(prev(u)), prev(u) > HIT], ["7日合計", fmt(sum(x.diff.slice(-7)))], ["30日合計", fmt(sum(x.diff.slice(-30)))],
+   ["勝率", win.length ? Math.round(wins / win.length * 100) + "%" : "—"], [`+${HIT.toLocaleString()}超`, `${win.filter(v => v > HIT).length}回`], ["表の期待割", x.table.toFixed(1) + "%"]]
+    .forEach(([l, v, r]) => { const d = h("div", "stat"); d.append(h("span", "label", l), h("b", r ? "red" : "", v)); st.appendChild(d); });
+  sh.appendChild(st);
+  const tg = h("div", "tags"); reasons(u).forEach(t => tg.appendChild(h("span", "tag out", t))); sh.appendChild(tg);
+  sh.appendChild(h("p", "note", "緑の点はAI Recommendに入っていた日。"));
 }
-function dayLabel(){ $("daylabel").textContent=`${fmtDate(D.days[dayIdx])}（${WD[new Date(D.days[dayIdx]).getDay()]}）`;
-  $("dayavg").textContent=`全台 ${kfmt(D.dayAvg[dayIdx])}`; $("dayPrev").disabled=dayIdx<=0; $("dayNext").disabled=dayIdx>=N-1;
-  document.querySelectorAll(".dchip").forEach(c=>c.setAttribute("aria-pressed",+c.dataset.i===dayIdx?"true":"false")); }
-function setDay(i,scroll=true){ dayIdx=Math.max(0,Math.min(N-1,i)); dayLabel(); if(D&&document.querySelector("#v-map.on")) renderFloor();
-  if(scroll){ const c=document.querySelector(`.dchip[data-i="${dayIdx}"]`); c&&c.scrollIntoView({block:"nearest",inline:"center",behavior:"smooth"}); } }
-const dayHeat=v=>heatColor(v/3000).bg;
-function buildStrip(){ const st=$("daystrip"); st.innerHTML="";
-  D.days.forEach((d,i)=>{ const gap=i>0&&(new Date(d)-new Date(D.days[i-1]))/864e5>2; const b=document.createElement("button"); b.type="button";
-    b.className="dchip"+(gap?" gap":""); b.dataset.i=i; b.setAttribute("aria-label",`${fmtDate(d)} 全台平均 ${sgn(D.dayAvg[i])}枚`);
-    b.innerHTML=`<b>${fmtDate(d)}</b><span>${WD[new Date(d).getDay()]}</span><i style="background:${dayHeat(D.dayAvg[i])}"></i>`;
-    b.addEventListener("click",()=>setDay(i)); st.appendChild(b); }); }
-function openCalendar(){
-  const byMonth={}; D.days.forEach((d,i)=>{ const k=d.slice(0,7); (byMonth[k]=byMonth[k]||{})[+d.slice(8)]=i; });
-  let html=`<div class="sheet-head"><div class="grow"><div style="font-size:22px;font-weight:500" id="sheetTitle">日付を選ぶ</div><div class="sub">色はその日の全台平均差枚（赤＝出た日、青＝出なかった日）</div></div>${closeBtn}</div><div class="cal">`;
-  Object.keys(byMonth).sort().reverse().forEach(k=>{ const [y,m]=k.split("-").map(Number); const first=new Date(y,m-1,1).getDay(); const last=new Date(y,m,0).getDate();
-    html+=`<h3>${y}年${m}月</h3><div class="calgrid">`+WD.split("").map(w=>`<span class="wd">${w}</span>`).join("")+"<span></span>".repeat(first);
-    for(let d=1;d<=last;d++){ const i=byMonth[k][d];
-      if(i==null) html+=`<span class="off">${d}</span>`;
-      else { const c=heatColor(D.dayAvg[i]/3000); html+=`<button type="button" data-i="${i}" aria-pressed="${i===dayIdx}" aria-label="${m}/${d} 全台平均 ${sgn(D.dayAvg[i])}枚" style="background:${c.bg};color:${c.ink}">${d}<small>${kfmt(D.dayAvg[i])}</small></button>`; } }
-    html+="</div>"; });
-  openSheet(html+"</div>");
-  document.querySelectorAll(".calgrid button").forEach(b=>b.addEventListener("click",()=>{ closeSheet(); setDay(+b.dataset.i); }));
-}
+function openSheet(u) { state.sel = state.sel === u ? null : u; renderAll(); }
 
 /* ---------- 画面切り替え ---------- */
-const VIEWS=["picks","map","trend","about"];
-function route(){ const v=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):"picks";
-  VIEWS.forEach(x=>$("v-"+x).classList.toggle("on",x===v));
-  document.querySelectorAll(".navbar a").forEach(a=>{ if(a.dataset.view===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
-  if(D){ if(v==="map"){ renderFloor(); if(mode==="day") setTimeout(()=>setDay(dayIdx),50); } if(v==="trend") renderCharts(); }
-  window.scrollTo(0,0); }
-window.addEventListener("hashchange",route);
-function renderAll(){ renderPicks(); renderFloor(); if(document.querySelector("#v-trend.on")) renderCharts(); }
-
-window.addEventListener("scroll",()=>$("appbar").classList.toggle("scrolled",scrollY>4),{passive:true});
-document.querySelectorAll("#segCount button").forEach(b=>b.addEventListener("click",()=>{ wide=b.dataset.wide==="1"; store.set("kb-wide",wide?"1":"0"); renderAll(); }));
-document.querySelectorAll("#segMode button").forEach(b=>b.addEventListener("click",()=>{ mode=b.dataset.mode; renderFloor(); if(mode==="day") setTimeout(()=>setDay(dayIdx),0); }));
-document.querySelectorAll("#segRange button").forEach(b=>b.addEventListener("click",()=>{ range=b.dataset.range; renderCharts(); }));
-
-applyTheme(); route();
-fetch(HALL.data,{cache:"no-cache"}).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); }).then(d=>{
-  D=d; N=D.days.length; UNITS=Object.keys(D.units); dayIdx=N-1;
-  buildStrip(); dayLabel();
-  $("dayPrev").addEventListener("click",()=>setDay(dayIdx-1)); $("dayNext").addEventListener("click",()=>setDay(dayIdx+1)); $("dayOpen").addEventListener("click",openCalendar);
-  const next=new Date(D.asof); next.setDate(next.getDate()+1);
-  $("subtitle").textContent=`${HALL.sub}｜${fmtDate(D.asof)}までの${N}日分`;
-  $("bannerText").textContent=`${fmtDate(D.asof)}までのデータから出した、${next.getMonth()+1}/${next.getDate()}以降向けの順位です。新しい日のデータが入ると変わります。過去の傾向で、結果を保証するものではありません。`;
-  renderAll(); route();
-}).catch(e=>{ $("bannerText").textContent="データを読み込めませんでした（"+e.message+"）。再読み込みしてください。"; });
+function setView(v, push = true) {
+  state.view = v; state.sel = null;
+  ["next", "past", "about"].forEach(k => $("v-" + k).hidden = k !== v);
+  $("pastSeg").hidden = v !== "past";
+  document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.v === v ? "page" : "false"));
+  if (push) history.replaceState(null, "", "#" + v);
+  renderAll(); window.scrollTo({ top: 0 });
+}
+function renderAll() {
+  if (!D) return;
+  renderModelSeg();
+  if (state.view === "next") { renderReco(); renderCtx(); renderNextMap(); }
+  if (state.view === "past") renderPast();
+  renderSheet();
+}
+document.querySelectorAll("nav.tabs button").forEach(b => b.addEventListener("click", () => setView(b.dataset.v)));
+document.querySelectorAll("#modelSeg button").forEach(b => b.addEventListener("click", () => { state.model = b.dataset.m; store.set("kb-model", state.model); renderAll(); }));
+document.querySelectorAll("#pastSeg button").forEach(b => b.addEventListener("click", () => { state.pastTab = b.dataset.p; renderPast(); }));
+const v0 = (location.hash || "#next").slice(1);
+setView(["next", "past", "about"].includes(v0) ? v0 : "next", false);
+fetch(HALL.data, { cache: "no-cache" }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
+  D = d; N = D.days.length; UNITS = Object.keys(D.units); PAST = D.past || []; PASTIDX = new Map(PAST.map(p => [p.d, p])); state.day = N - 1;
+  $("range").textContent = `${UNITS.length}台 · ${md(D.days[0])}〜${md(D.asof)}（${N}日）`;
+  renderAll();
+}).catch(e => { $("range").textContent = "データを読み込めませんでした（" + e.message + "）"; });
 </script>
-</body>
-</html>
+</body></html>

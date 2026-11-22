@@ -35,6 +35,15 @@ for u in units:
       "diff": [data[d][u]["diff"] if u in data[d] else None for d in days],
       "g": [data[d][u]["g"] if u in data[d] else None for d in days],
     }
+# 過去日の推奨(その日より前の、途切れない区間のデータだけで出した順位)
+past = []
+for seg in p.segments(days):
+    for i in range(3, len(seg)):
+        t = seg[i]; h = seg[:i][::-1]
+        o3 = p.ranking(data, h, wide=False)[0]; o4 = p.ranking(data, h, wide=True)[0]
+        past.append({"d": str(t), "r3": o3[:5], "r4": o4[:5]})
+out["past"] = past
+out["holidays"] = {}
 (ROOT / "data.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 print("data.json を更新:", out["asof"], f"{len(days)}日 / {len(units)}台")
 print("v3 上位5:", r3[:5], " v4 上位5:", r4[:5], " 除外:", ex)

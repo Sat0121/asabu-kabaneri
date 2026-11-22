@@ -90,6 +90,27 @@ for u in units_now:
       "diff": [None if pd.isna(x) else int(x) for x in D[u]],
       "g": [None if pd.isna(x) else int(x) for x in G[u]],
     }
+# 過去日の推奨(ウォークフォワード: その日より前のデータだけで学習・順位付け。14日ごとに学習し直す)
+past = []; model = None; last = None
+for t in sorted(cur.date.unique()):
+    tr_ = X[(X.date < t) & X.y.notna() & X.d1.notna()]
+    if tr_.date.nunique() < 40: continue
+    prior = [d for d in sorted(data) if pd.Timestamp(d) < t]
+    if len(prior) < 3: continue
+    h = p.contiguous(prior)
+    if (t - pd.Timestamp(h[0])).days > 7: continue
+    if model is None or (t - last).days >= 14:
+        model = HGR(max_iter=150, learning_rate=0.05, max_leaf_nodes=15, min_samples_leaf=40, l2_regularization=1.0, random_state=0).fit(tr_[FE], tr_.yrel.clip(-8000, 12000)); last = t
+    td = X[X.date == t].set_index("machine")
+    us = [u for u in td.index if not (td.d1[u] > EXCLUDE_PREV)]
+    if len(us) < 5: continue
+    tsd, _ = p.table_score(data, h)
+    T_ = pr(pd.Series({u: tsd.get(str(u), p.BASE) for u in td.index}))
+    b_ = T_ + .5 * td.nb_best1.fillna(0) + .5 * (1 - td.b1_r.fillna(.5)) + .5 * (td.n1500_5.fillna(0) > 0) + .5 * (1 - pr(td.gm5).fillna(.5))
+    g_ = pr(pd.Series(model.predict(td[FE]), index=td.index))
+    s3 = (g_ + b_)[us].sort_values(ascending=False); s4 = b_[us].sort_values(ascending=False)
+    past.append({"d": str(t.date()), "r3": [str(u) for u in s3.index[:5]], "r4": [str(u) for u in s4.index[:5]]})
+out["past"] = past
 (ROOT / "eagle.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 print("eagle.json を更新:", out["asof"], f"{len(days)}日 / {len(U)}台")
 print("1〜3台用 上位5:", r3[:5], " 5台以上用 上位5:", r4[:5], " 除外:", [int(u) for u in ex])

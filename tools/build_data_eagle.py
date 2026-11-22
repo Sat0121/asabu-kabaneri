@@ -6,7 +6,7 @@
   土台 = 1年表スコア順位 + 0.5×前日差枚1位の隣 + 0.5×前日ボーナス回数の少なさ順位
        + 0.5×直近5日に+1500枚超の日あり + 0.5×直近5日の平均回転数の少なさ順位   (2026-11-23 追加)
   1〜3台用(v3) = 勾配ブースティングの予測順位 + 土台
-  5台以上用(v4) = 土台
+  5台以上用(v4) = 土台 − 0.5×前日+1000枚超   (2026-11-23 追加)
 前日+3000枚超の台は候補から外す。
 """
 import json, sys, pathlib, statistics as st, warnings
@@ -50,7 +50,7 @@ n15 = (te.n1500_5.reindex(units_now).fillna(0) > 0).astype(float)
 lowg = 1 - pr(te.gm5.reindex(units_now)).fillna(.5)
 base = tab + .5 * nb + .5 * bw + .5 * n15 + .5 * lowg
 v3 = g + base
-v4 = base
+v4 = base - .5 * (te.d1.reindex(units_now) > 1000).astype(float)
 prevd = te.d1.reindex(units_now)
 ex = [u for u in units_now if prevd[u] > EXCLUDE_PREV]
 r3 = [u for u in v3.sort_values(ascending=False).index if u not in ex]
@@ -108,7 +108,7 @@ for t in sorted(cur.date.unique()):
     T_ = pr(pd.Series({u: tsd.get(str(u), p.BASE) for u in td.index}))
     b_ = T_ + .5 * td.nb_best1.fillna(0) + .5 * (1 - td.b1_r.fillna(.5)) + .5 * (td.n1500_5.fillna(0) > 0) + .5 * (1 - pr(td.gm5).fillna(.5))
     g_ = pr(pd.Series(model.predict(td[FE]), index=td.index))
-    s3 = (g_ + b_)[us].sort_values(ascending=False); s4 = b_[us].sort_values(ascending=False)
+    s3 = (g_ + b_)[us].sort_values(ascending=False); s4 = (b_ - .5 * (td.d1 > 1000).astype(float))[us].sort_values(ascending=False)
     past.append({"d": str(t.date()), "r3": [str(u) for u in s3.index[:5]], "r4": [str(u) for u in s4.index[:5]]})
 out["past"] = past
 (ROOT / "eagle.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")

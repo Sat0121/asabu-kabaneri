@@ -455,6 +455,7 @@ function reasons(u) {
     if (x.g5 != null) r.push(`5日平均 ${x.g5.toLocaleString()}G`);
     if (x.nbBest1) r.push("前日1位の隣");
     if (x.bona1 != null) r.push(`前日ボーナス${x.bona1}回`);
+    if (state.model === "r4" && prev(u) > 1000) r.push("前日+1000超（減点）");
   } else {
     r.push(`7日平均 ${x.g7.toLocaleString()}G`);
     if (x.minus >= 2) r.push(`${x.minus}日連続マイナス`);

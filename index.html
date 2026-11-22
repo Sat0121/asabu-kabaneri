@@ -231,8 +231,13 @@ svg.kmap { display: block; width: 100%; height: auto; touch-action: manipulation
 .aimark .tgt { fill: none; stroke: #fff; stroke-width: 1.6; }
 .aimark .tgt-dot { fill: #fff; }
 .aimark text { fill: #fff; font: 700 13px var(--body); dominant-baseline: central; text-anchor: middle; }
-.aimark.top1 .cap { stroke: var(--surface-c-lowest); stroke-width: 2; }
-.aimark.top1 .halo { fill: none; stroke: var(--ai-ring); stroke-width: 2; }
+/* 明日の島図: 狙い度を緑の濃さで。AIマークは白いカプセル(縁取りなし)で緑の上でも読めるように */
+:root { --g1: #e4f4e7; --g1-ink: #1b3d22; --g2: #bfe6c7; --g2-ink: #12361b; --g3: #6fc684; --g3-ink: #06290f; --g4: #1e9b47; --g4-ink: #ffffff; --ai-deep: #136b33; }
+@media (prefers-color-scheme: dark) { :root { --g1: #1b2a1f; --g1-ink: #cfe9d4; --g2: #23462c; --g2-ink: #e2f5e6; --g3: #2e7a45; --g3-ink: #ffffff; --g4: #46c46c; --g4-ink: #04210e; --ai-deep: #0f5a2a; } }
+.aimark.solid .cap { fill: #ffffff; }
+.aimark.solid .tgt { stroke: var(--ai-deep); }
+.aimark.solid .tgt-dot { fill: var(--ai-deep); }
+.aimark.solid text { fill: var(--ai-deep); }
 .aimark.miss .cap { fill: var(--surface-c-lowest); }
 .aimark.miss .tgt { stroke: var(--ai-ring); }
 .aimark.miss .tgt-dot { fill: var(--ai-ring); }
@@ -320,8 +325,8 @@ svg.kmap { display: block; width: 100%; height: auto; touch-action: manipulation
     <div class="block">
       <h2 class="block-title">マップの見方</h2>
       <ul class="plain">
-        <li><b style="color:var(--ai-ring)">緑の照準マーク</b> AI Recommendの台。数字が順位、1位は外枠付き</li>
-        <li><b>青の濃さ</b> 明日は狙い度、過去データはその日の差枚</li>
+        <li><b>照準マーク</b> AI Recommendの台。数字が順位（明日は白、過去データは緑）</li>
+        <li><b>色の濃さ</b> 明日は狙い度（緑）、過去データはその日の差枚（青）</li>
         <li><b>⚠と斜線</b> 前日+3,000枚超で狙わない台</li>
         <li><b>過去データ</b> 当たり(+2,000枚超)は塗り、外れは白抜きのマーク</li>
       </ul>
@@ -391,13 +396,13 @@ function tierScore(u) {            // 明日: 狙い度の順位で4段階
   const q = r / o.length; return q < .2 ? 3 : q < .45 ? 2 : q < .75 ? 1 : 0;
 }
 function tierDiff(v) { return v == null ? -1 : v >= 5000 ? 3 : v >= HIT ? 2 : v >= 0 ? 1 : 0; }
-const fillOf = t => t < 0 ? ["var(--none)", "var(--none-ink)"] : [`var(${TIER[t]})`, `var(${TIER[t]}-ink)`];
+const GTIER = ["--g1", "--g2", "--g3", "--g4"];
+const fillOf = (t, pal = TIER) => t < 0 ? ["var(--none)", "var(--none-ink)"] : [`var(${pal[t]})`, `var(${pal[t]}-ink)`];
 
 /* ---------- AIマーク ---------- */
-function aiMark(parent, cx, cy, rank, miss) {
-  const g = el("g", { class: "aimark" + (rank === 1 ? " top1" : "") + (miss ? " miss" : "") }, parent);
+function aiMark(parent, cx, cy, rank, miss, solid) {
+  const g = el("g", { class: "aimark" + (miss ? " miss" : "") + (solid ? " solid" : "") }, parent);
   const w = 46, hgt = 22, x = cx - w / 2, y = cy - hgt / 2;
-  if (rank === 1) el("rect", { class: "halo", x: x - 3, y: y - 3, width: w + 6, height: hgt + 6, rx: (hgt + 6) / 2 }, g);
   el("rect", { class: "cap", x, y, width: w, height: hgt, rx: hgt / 2 }, g);
   if (miss) el("rect", { class: "cap-ring", x, y, width: w, height: hgt, rx: hgt / 2 }, g);
   const tx = x + 13;  // 照準
@@ -407,9 +412,10 @@ function aiMark(parent, cx, cy, rank, miss) {
   const t = el("text", { x: x + 32, y: cy }, g); t.textContent = rank;
   return g;
 }
-function legendMark(rank, miss) {
+function legendMark(rank, miss, solid) {
   const s = el("svg", { viewBox: "0 0 52 28", width: 52, height: 28, "aria-hidden": "true" });
-  aiMark(s, 26, 14, rank, miss); return s;
+  if (solid) el("rect", { x: 0, y: 0, width: 52, height: 28, rx: 8, fill: "var(--g4)" }, s);
+  aiMark(s, 26, 14, rank, miss, solid); return s;
 }
 
 /* ---------- 島図 ---------- */
@@ -432,13 +438,13 @@ function drawMap(svg, opt) {
   const cell = (u, x, y) => {
     const g = el("g", { class: "cell", tabindex: 0, role: "button" }, svg);
     if (!U(u)) { el("rect", { class: "base", x, y, width: CW, height: CH, rx: 10, fill: "var(--none)" }, g); el("text", { class: "no", x: x + 12, y: y + CH / 2, fill: "var(--none-ink)" }, g).textContent = u; return; }
-    const ex = opt.ex && opt.ex(u), [bg, ink] = fillOf(ex ? -1 : opt.fill(u));
+    const ex = opt.ex && opt.ex(u), [bg, ink] = fillOf(ex ? -1 : opt.fill(u), opt.pal);
     if (ex) g.classList.add("ex"); if (state.sel === u) g.classList.add("sel");
     el("rect", { class: "base", x, y, width: CW, height: CH, rx: 10, fill: ex ? `url(#hatch-${svg.id})` : bg }, g);
     el("text", { class: "no", x: x + 12, y: y + CH / 2, fill: ink }, g).textContent = (opt.warn && opt.warn(u) ? "⚠" : "") + u;
     el("text", { class: "val", x: x + CW - 10, y: y + CH / 2, fill: ink }, g).textContent = ex ? "狙わない" : opt.val(u);
     const m = opt.mark && opt.mark(u);
-    if (m) aiMark(g, x + CW * 0.55, y + CH / 2, m.rank, m.miss);
+    if (m) aiMark(g, x + CW * 0.55, y + CH / 2, m.rank, m.miss, opt.solid);
     g.setAttribute("aria-label", `${u}番 ${ex ? "狙わない" : opt.val(u)}${m ? ` AI Recommend ${m.rank}位` : ""}`);
     g.addEventListener("click", () => openSheet(u));
     g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openSheet(u); } });
@@ -530,14 +536,13 @@ function renderCtx() {
 function renderNextMap() {
   const reco = RECO();
   drawMap($("map"), {
-    fill: tierScore, val: u => `${U(u)[rankKey()]}位`, ex: u => U(u).excluded,
+    fill: tierScore, pal: GTIER, solid: true, val: u => `${U(u)[rankKey()]}位`, ex: u => U(u).excluded,
     warn: u => prev(u) > D.excludeThreshold || !!U(u).big5,
     mark: u => { const r = reco.indexOf(u); return r >= 0 ? { rank: r + 1 } : null; },
   });
   const lg = $("legend"); lg.textContent = "";
-  const li1 = h("li"); li1.append(legendMark(1), "AI Recommend 1位"); lg.appendChild(li1);
-  const li2 = h("li"); li2.append(legendMark(2), "2〜5位"); lg.appendChild(li2);
-  [["--h4", "狙い度 上位20%"], ["--h3", "〜45%"], ["--h2", "〜75%"], ["--h1", "下位"]].forEach(([v, t]) => { const li = h("li"); const i = h("i"); i.style.background = `var(${v})`; li.append(i, t); lg.appendChild(li); });
+  const li1 = h("li"); li1.append(legendMark(1, false, true), "AI Recommend（数字が順位）"); lg.appendChild(li1);
+  [["--g4", "狙い度 上位20%"], ["--g3", "〜45%"], ["--g2", "〜75%"], ["--g1", "下位"]].forEach(([v, t]) => { const li = h("li"); const i = h("i"); i.style.background = `var(${v})`; li.append(i, t); lg.appendChild(li); });
   $("mapNote").textContent = `マークの数字がAI Recommendの順位、右の「○位」は候補${order().length}台の中での狙い度の順位です。斜線は狙わない台（前日+${D.excludeThreshold.toLocaleString()}枚超・メモ）。${HALL.id === "eagle" ? "⚠は直近5日に+3,000枚超の日がある台（順位はそのまま）。" : "⚠は前日+3,000枚超。"}台をタップすると成績が出ます。`;
 }
 

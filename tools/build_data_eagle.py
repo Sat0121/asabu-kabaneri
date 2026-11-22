@@ -3,8 +3,10 @@
 使い方: python3 tools/build_data_eagle.py   (リポジトリのルートで実行。pandas と scikit-learn が必要)
 
 狙い度(検証は ml/ と README を参照)
-  1〜3台用(v3) = 勾配ブースティングの予測順位 + 1年表スコア順位 + 0.5×前日差枚1位の隣 + 0.5×前日ボーナス回数の少なさ順位
-  5台以上用(v4) = 1年表スコア順位 + 0.5×前日差枚1位の隣 + 0.5×前日ボーナス回数の少なさ順位
+  土台 = 1年表スコア順位 + 0.5×前日差枚1位の隣 + 0.5×前日ボーナス回数の少なさ順位
+       + 0.5×直近5日に+1500枚超の日あり + 0.5×直近5日の平均回転数の少なさ順位   (2026-11-23 追加)
+  1〜3台用(v3) = 勾配ブースティングの予測順位 + 土台
+  5台以上用(v4) = 土台
 前日+3000枚超の台は候補から外す。
 """
 import json, sys, pathlib, statistics as st, warnings
@@ -25,7 +27,7 @@ units_now = sorted(cur[cur.date == asof].machine.unique())
 nxt = asof + pd.Timedelta(days=1)
 df2 = pd.concat([df, pd.DataFrame({"date": nxt, "machine": units_now, "diff": np.nan, "games": np.nan, "bb": np.nan, "rb": np.nan, "bona": np.nan})], ignore_index=True)
 X = build(df2, keep_next=True)
-FE = [c for c in X.columns if c not in ("date", "machine", "y", "yrel", "layout")]
+FE = [c for c in X.columns if c not in ("date", "machine", "y", "yrel", "layout", "n1500_5", "gm5")]  # 新特徴はGBMに入れない(入れると検証で悪化)
 tr = X[(X.date < nxt) & X.y.notna() & X.d1.notna()]
 gbm = HGR(max_iter=150, learning_rate=0.05, max_leaf_nodes=15, min_samples_leaf=40, l2_regularization=1.0, random_state=0)
 gbm.fit(tr[FE], tr.yrel.clip(-8000, 12000))
@@ -44,13 +46,23 @@ tab = pr(pd.Series({u: ts[str(u)] for u in units_now}))
 nb = te.nb_best1.reindex(units_now).fillna(0)
 bw = 1 - te.b1_r.reindex(units_now).fillna(.5)
 g = pr(pd.Series(gbm.predict(te.loc[units_now, FE]), index=units_now))
-v3 = g + tab + .5 * nb + .5 * bw
-v4 = tab + .5 * nb + .5 * bw
+n15 = (te.n1500_5.reindex(units_now).fillna(0) > 0).astype(float)
+lowg = 1 - pr(te.gm5.reindex(units_now)).fillna(.5)
+base = tab + .5 * nb + .5 * bw + .5 * n15 + .5 * lowg
+v3 = g + base
+v4 = base
 prevd = te.d1.reindex(units_now)
 ex = [u for u in units_now if prevd[u] > EXCLUDE_PREV]
 r3 = [u for u in v3.sort_values(ascending=False).index if u not in ex]
 r4 = [u for u in v4.sort_values(ascending=False).index if u not in ex]
 
+# 祝日(日の強さの参考): 全期間(旧配置含む)の全台平均差枚
+import holidays as _h
+jp = _h.Japan(years=[2025, 2026, 2027])
+HOL = {str(d): n for d, n in sorted(jp.items()) if pd.Timestamp(d) > asof - pd.Timedelta(days=1) and pd.Timestamp(d) <= asof + pd.Timedelta(days=120)}
+dayavg = df.groupby("date")["diff"].mean()
+kind = pd.Series(["祝日" if d in jp else ("土日" if d.dayofweek >= 5 else "平日") for d in dayavg.index], index=dayavg.index)
+HSTAT = {k: {"mean": round(float(dayavg[kind == k].mean())), "median": round(float(dayavg[kind == k].median())), "n": int((kind == k).sum())} for k in ("祝日", "土日", "平日")}
 days = sorted(cur.date.unique())
 piv = lambda k: cur.pivot(index="date", columns="machine", values=k).reindex(days)
 D, G, B = piv("diff"), piv("games"), piv("bona")
@@ -62,6 +74,8 @@ out = {
   "columns": [[u for u in U if int(u) <= 56], [u for u in U if int(u) >= 57]],  # 46〜56 と 57〜68 は別の島
   "excludeThreshold": EXCLUDE_PREV,
   "candidates": len(r3),
+  "holidays": HOL,
+  "holStats": HSTAT,
   "units": {}
 }
 for u in units_now:
@@ -71,7 +85,7 @@ for u in units_now:
       "v4": round(float(v4[u]), 3), "rank4": (r4.index(u) + 1) if u in r4 else None,
       "excluded": u in ex, "table": round(ts[str(u)], 1), "g7": round(float(te.g7m.get(u, np.nan))) if not np.isnan(te.g7m.get(u, np.nan)) else 0,
       "minus": m, "plus": pl, "nbBest1": bool(nb[u]), "bona1": None if pd.isna(B[u].iloc[-1]) else int(B[u].iloc[-1]),
-      "ai": round(float(g[u]), 3),
+      "ai": round(float(g[u]), 3), "had1500": bool(n15[u]), "g5": None if pd.isna(te.gm5.get(u)) else round(float(te.gm5[u])),
       "why": [[n, r] for n, r in why[str(u)]],
       "diff": [None if pd.isna(x) else int(x) for x in D[u]],
       "g": [None if pd.isna(x) else int(x) for x in G[u]],

@@ -18,6 +18,8 @@ def build(df, keep_next=False):
         for n in (1,2,3,5,7,9):
             F[f'd{n}']=roll(D,n); F[f'b{n}']=roll(B,n)
             F[f'g{n}']=G.shift(1).rolling(n,min_periods=max(1,n//2)).mean()
+        F['n1500_5']=(D>1500).astype(float).where(D.notna()).shift(1).rolling(5,min_periods=2).sum()
+        F['gm5']=G.shift(1).rolling(5,min_periods=2).mean()
         F['g7m']=G.shift(1).rolling(7,min_periods=2).mean()
         F['dm30']=D.shift(1).rolling(30,min_periods=5).mean()
         F['dmax30']=D.shift(1).rolling(30,min_periods=5).max()

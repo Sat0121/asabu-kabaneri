@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f7f9ff">
 <title>カバネリ海門決戦 島ヒートマップ｜麻生ハッピー</title>
-<meta name="description" content="麻生ハッピー カバネリ海門決戦（スマスロ③）の翌日の狙い台と、島図のヒートマップ。">
+<meta name="description" content="麻生ハッピー カバネリ海門決戦の翌日の狙い台と、島図のヒートマップ。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -41,6 +41,9 @@ button{font:inherit;color:inherit}
 .appbar{position:sticky;top:0;z-index:20;background:var(--md-sys-color-surface);padding:calc(6px + env(safe-area-inset-top)) max(4px,env(safe-area-inset-right)) 6px max(16px,env(safe-area-inset-left));display:flex;align-items:center;gap:4px;transition:background-color .2s}
 .appbar.scrolled{background:var(--md-sys-color-surface-container)}
 .appbar .titles{flex:1;min-width:0}
+.hallsw{display:flex;gap:4px;flex:none}
+.hallsw a{height:32px;padding:0 12px;border-radius:var(--r-full);border:1px solid var(--md-sys-color-outline-variant);display:inline-flex;align-items:center;font-size:13px;font-weight:500;color:var(--md-sys-color-on-surface-variant);text-decoration:none;white-space:nowrap}
+.hallsw a[aria-current="page"]{background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container);border-color:transparent}
 .appbar h1{font-size:18px;font-weight:500;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .appbar p{margin:0;font-size:12px;color:var(--md-sys-color-on-surface-variant);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .icon-btn{width:48px;height:48px;border:0;border-radius:var(--r-full);background:transparent;color:var(--md-sys-color-on-surface-variant);display:grid;place-items:center;cursor:pointer;flex:none}
@@ -195,6 +198,7 @@ ul.why{margin:6px 0 12px;padding-left:20px;font-size:13px}
     <h1>カバネリ海門決戦</h1>
     <p id="subtitle">麻生ハッピー・スマスロ③</p>
   </div>
+  <nav class="hallsw" aria-label="店舗"><a href="./" aria-current=page>ハッピー</a><a href="eagle.html">イーグル</a></nav>
   <button class="icon-btn" id="btnPalette" type="button" aria-label="テーマと明るさ"><svg class="ms" aria-hidden="true"><use href="#i-palette"/></svg></button>
 </header>
 
@@ -332,6 +336,7 @@ ul.why{margin:6px 0 12px;padding-left:20px;font-size:13px}
 </section>
 
 <script type="module">
+const HALL={"id": "asabu", "data": "data.json", "sub": "麻生ハッピー・スマスロ③", "whereL": "781側の列", "whereR": "756側の列", "headL": "781〜815", "headR": "756〜780", "counter": "カウンター側", "aisle": "通路"};
 import {argbFromHex,hexFromArgb,Blend,SchemeTonalSpot,Hct,MaterialDynamicColors as MDC} from "./vendor/mcu.min.js";
 const $=id=>document.getElementById(id);
 const icon=(n,c="ms")=>`<svg class="${c}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
@@ -379,11 +384,17 @@ const hot=u=>prev(u)>=WARN;   // 前日+3000枚以上 = 据え置き・上げは
 const badge=()=>`<span class="warnbadge" title="前日+${WARN.toLocaleString()}枚以上">${icon("warning-fill")}</span>`;
 const scoreT=u=>{ const xs=UNITS.filter(x=>!U(x).excluded).map(x=>Math.abs(sc(x))); return sc(u)/Math.max(...xs); };
 function where(u){ const [L,R]=D.columns; const i=L.indexOf(u); const j=R.indexOf(u);
-  return i>=0?`781側の列・手前から${i+1}台目`:`756側の列・手前から${j+1}台目`; }
+  return i>=0?`${HALL.whereL}・手前から${i+1}台目`:`${HALL.whereR}・手前から${j+1}台目`; }
 function order(){ return UNITS.filter(u=>!U(u).excluded).sort((a,b)=>rk(a)-rk(b)); }
 function reasons(u){ const x=U(u), r=[];
+  if(HALL.id==="eagle"){
+    if(!wide) r.push(`${icon("bar_chart")}AI ${Math.round(x.ai*100)}点`);
+    r.push(`表 ${x.table.toFixed(1)}%`);
+    if(x.nbBest1) r.push("前日1位の隣");
+    if(x.bona1!=null) r.push(`前日ボーナス${x.bona1}回`);
+  } else {
   r.push(`${icon("trending_down")}7日平均 ${x.g7.toLocaleString()}G`);
-  r.push(`表 ${x.table.toFixed(1)}%`);
+  r.push(`表 ${x.table.toFixed(1)}%`); }
   if(x.minus>=2) r.push(`${x.minus}日連続マイナス`);
   r.push(`前日 ${kfmt(prev(u))}`);
   return r.map(t=>`<span class="tag">${t}</span>`).join(""); }
@@ -428,7 +439,7 @@ function renderFloor(){
   const showEx=mode==="rank";
   const wIdx=mode==="day"?dayIdx-1:N-1;   // ⚠の基準日：日別なら選んだ日の前日、それ以外は最新日
   const hotHere=u=>wIdx>=0&&(U(u).diff[wIdx]??0)>=WARN;
-  f.insertAdjacentHTML("beforeend",`<div class="frow head"><span>781〜815</span><span></span><span>756〜780</span></div>`);
+  f.insertAdjacentHTML("beforeend",`<div class="frow head"><span>${HALL.headL}</span><span></span><span>${HALL.headR}</span></div>`);
   const cell=u=>{ const b=document.createElement("button"); b.type="button"; b.className="cell";
     if(!D.units[u]){ b.disabled=true; b.innerHTML=`<b>${u}</b><span>—</span>`; return b; }
     const w=hotHere(u)?badge():"";
@@ -438,9 +449,9 @@ function renderFloor(){
     b.addEventListener("click",()=>openUnit(u)); return b; };
   for(let i=n-1;i>=0;i--){ const r=document.createElement("div"); r.className="frow";
     r.appendChild(L[i]?cell(L[i]):document.createElement("span"));
-    const a=document.createElement("span"); a.className="aisle"; if(i===Math.floor(n/2)) a.textContent="通路"; r.appendChild(a);
+    const a=document.createElement("span"); a.className="aisle"; if(i===Math.floor(n/2)) a.textContent=HALL.aisle; r.appendChild(a);
     r.appendChild(R[i]?cell(R[i]):document.createElement("span")); f.appendChild(r); }
-  f.insertAdjacentHTML("beforeend",`<div class="counter">カウンター側</div>`);
+  f.insertAdjacentHTML("beforeend",`<div class="counter">${HALL.counter}</div>`);
   $("legLo").textContent=M.lo; $("legHi").textContent=M.hi;
   $("legBar").style.background=`linear-gradient(90deg,${css("--heat-cold")},${css("--heat-mid")},${css("--heat-hot")})`;
   $("exKey").style.display=$("exKeyLabel").style.display=showEx?"":"none";
@@ -583,12 +594,12 @@ document.querySelectorAll("#segMode button").forEach(b=>b.addEventListener("clic
 document.querySelectorAll("#segRange button").forEach(b=>b.addEventListener("click",()=>{ range=b.dataset.range; renderCharts(); }));
 
 applyTheme(); route();
-fetch("data.json",{cache:"no-cache"}).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); }).then(d=>{
+fetch(HALL.data,{cache:"no-cache"}).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); }).then(d=>{
   D=d; N=D.days.length; UNITS=Object.keys(D.units); dayIdx=N-1;
   buildStrip(); dayLabel();
   $("dayPrev").addEventListener("click",()=>setDay(dayIdx-1)); $("dayNext").addEventListener("click",()=>setDay(dayIdx+1)); $("dayOpen").addEventListener("click",openCalendar);
   const next=new Date(D.asof); next.setDate(next.getDate()+1);
-  $("subtitle").textContent=`麻生ハッピー・スマスロ③｜${fmtDate(D.asof)}までの${N}日分`;
+  $("subtitle").textContent=`${HALL.sub}｜${fmtDate(D.asof)}までの${N}日分`;
   $("bannerText").textContent=`${fmtDate(D.asof)}までのデータから出した、${next.getMonth()+1}/${next.getDate()}以降向けの順位です。新しい日のデータが入ると変わります。過去の傾向で、結果を保証するものではありません。`;
   renderAll(); route();
 }).catch(e=>{ $("bannerText").textContent="データを読み込めませんでした（"+e.message+"）。再読み込みしてください。"; });

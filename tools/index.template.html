@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f7f9ff">
-<title>カバネリ海門決戦 島ヒートマップ｜麻生ハッピー</title>
-<meta name="description" content="麻生ハッピー カバネリ海門決戦（スマスロ③）の翌日の狙い台と、島図のヒートマップ。">
+<title>カバネリ海門決戦 島ヒートマップ｜__HALL_NAME__</title>
+<meta name="description" content="__HALL_NAME__ カバネリ海門決戦の翌日の狙い台と、島図のヒートマップ。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -41,6 +41,9 @@ button{font:inherit;color:inherit}
 .appbar{position:sticky;top:0;z-index:20;background:var(--md-sys-color-surface);padding:calc(6px + env(safe-area-inset-top)) max(4px,env(safe-area-inset-right)) 6px max(16px,env(safe-area-inset-left));display:flex;align-items:center;gap:4px;transition:background-color .2s}
 .appbar.scrolled{background:var(--md-sys-color-surface-container)}
 .appbar .titles{flex:1;min-width:0}
+.hallsw{display:flex;gap:4px;flex:none}
+.hallsw a{height:32px;padding:0 12px;border-radius:var(--r-full);border:1px solid var(--md-sys-color-outline-variant);display:inline-flex;align-items:center;font-size:13px;font-weight:500;color:var(--md-sys-color-on-surface-variant);text-decoration:none;white-space:nowrap}
+.hallsw a[aria-current="page"]{background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container);border-color:transparent}
 .appbar h1{font-size:18px;font-weight:500;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .appbar p{margin:0;font-size:12px;color:var(--md-sys-color-on-surface-variant);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .icon-btn{width:48px;height:48px;border:0;border-radius:var(--r-full);background:transparent;color:var(--md-sys-color-on-surface-variant);display:grid;place-items:center;cursor:pointer;flex:none}
@@ -193,8 +196,9 @@ __SPRITE__
 <header class="appbar" id="appbar">
   <div class="titles">
     <h1>カバネリ海門決戦</h1>
-    <p id="subtitle">麻生ハッピー・スマスロ③</p>
+    <p id="subtitle">__HALL_SUB__</p>
   </div>
+  <nav class="hallsw" aria-label="店舗">__HALL_SWITCH__</nav>
   <button class="icon-btn" id="btnPalette" type="button" aria-label="テーマと明るさ"><svg class="ms" aria-hidden="true"><use href="#i-palette"/></svg></button>
 </header>
 
@@ -280,43 +284,7 @@ __SPRITE__
   </section>
 
   <!-- 解説 -->
-  <section class="view about" id="v-about" aria-label="解説">
-    <div class="card">
-      <h2>狙い度の決め方</h2>
-      <h3>狙わない台</h3>
-      <p>前日の差枚が+3000枚を超えた台は、据え置き・上げを狙わない方針で、候補から外しています。島図や一覧では⚠マークを付けています。</p>
-      <h3>1〜3台を打つとき</h3>
-      <p>slot-eye「狙い方別平均（過去90日）」に当てはめた期待機械割の順位と、直近7日の平均回転数が少ない順位を、同じ重みで足しています。</p>
-      <h3>5台以上を押さえるとき</h3>
-      <p>上の表の順位に、低稼働（×0.5）と連続マイナス日数（×0.5）を足し、連続プラス日数（×0.5）を引いています。</p>
-      <h3>データの扱い</h3>
-      <p>差枚は全日使います。回転数は1万G以上の日をデータなしとして扱います（前日分の加算が疑われるため）。「隣の台」は実際の島図で判定し、788と800は隣、780と781は通路をはさんだ向かいとしています。</p>
-    </div>
-    <div class="card">
-      <h2>過去日での成績</h2>
-      <p class="support">その日より前のデータだけで順位を出し、上位台の翌日差枚がその日の全台平均を何枚上回ったか（枚/台）。前日+3000枚超の除外を入れた結果です。</p>
-      <table class="num">
-        <thead><tr><th></th><th>9/3〜9/23</th><th>10/29〜11/20</th></tr></thead>
-        <tbody>
-          <tr><td>1〜3台用 上位1台</td><td>+727</td><td>+1092</td></tr>
-          <tr><td>1〜3台用 上位3台</td><td>+817</td><td>+1101</td></tr>
-          <tr><td>5台以上用 上位5台</td><td>+785</td><td>+831</td></tr>
-        </tbody>
-      </table>
-      <p>誤差は1台で±700〜850枚あります。90日表は検証期間の結果も含んでいるため、実際の効き目はこれより小さめと考えてください。機械学習（100通りの探索・勾配ブースティング）も試しましたが、学習していない期間ではこの単純な形に負けました。</p>
-    </div>
-    <div class="card">
-      <h2>データの更新</h2>
-      <ol>
-        <li>slot-eye「詳細」タブの台別表から、新しい日の行を <code>kabaneri_history.txt</code> に追記</li>
-        <li>日別の平均差枚・平均回転数が画面の値と一致するか確認</li>
-        <li><code>python3 tools/build_data.py</code> を実行してpush</li>
-      </ol>
-      <p>データ：slot-eye 台別データ（差枚・回転数）。<a href="https://github.com/Sat0121/asabu-kabaneri" style="color:var(--md-sys-color-primary)">GitHub</a></p>
-      <p>過去の傾向をまとめたもので、結果を保証するものではありません。</p>
-    </div>
-  </section>
-</main>
+__ABOUT__</main>
 
 <div class="navbar"><nav aria-label="画面の切り替え">
   <a href="#picks" data-view="picks"><span class="pill"><svg class="ms o" aria-hidden="true"><use href="#i-flag"/></svg><svg class="ms f" aria-hidden="true"><use href="#i-flag-fill"/></svg></span>狙い台</a>
@@ -332,6 +300,7 @@ __SPRITE__
 </section>
 
 <script type="module">
+const HALL=__HALL__;
 import {argbFromHex,hexFromArgb,Blend,SchemeTonalSpot,Hct,MaterialDynamicColors as MDC} from "./vendor/mcu.min.js";
 const $=id=>document.getElementById(id);
 const icon=(n,c="ms")=>`<svg class="${c}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
@@ -379,11 +348,17 @@ const hot=u=>prev(u)>=WARN;   // 前日+3000枚以上 = 据え置き・上げは
 const badge=()=>`<span class="warnbadge" title="前日+${WARN.toLocaleString()}枚以上">${icon("warning-fill")}</span>`;
 const scoreT=u=>{ const xs=UNITS.filter(x=>!U(x).excluded).map(x=>Math.abs(sc(x))); return sc(u)/Math.max(...xs); };
 function where(u){ const [L,R]=D.columns; const i=L.indexOf(u); const j=R.indexOf(u);
-  return i>=0?`781側の列・手前から${i+1}台目`:`756側の列・手前から${j+1}台目`; }
+  return i>=0?`${HALL.whereL}・手前から${i+1}台目`:`${HALL.whereR}・手前から${j+1}台目`; }
 function order(){ return UNITS.filter(u=>!U(u).excluded).sort((a,b)=>rk(a)-rk(b)); }
 function reasons(u){ const x=U(u), r=[];
+  if(HALL.id==="eagle"){
+    if(!wide) r.push(`${icon("bar_chart")}AI ${Math.round(x.ai*100)}点`);
+    r.push(`表 ${x.table.toFixed(1)}%`);
+    if(x.nbBest1) r.push("前日1位の隣");
+    if(x.bona1!=null) r.push(`前日ボーナス${x.bona1}回`);
+  } else {
   r.push(`${icon("trending_down")}7日平均 ${x.g7.toLocaleString()}G`);
-  r.push(`表 ${x.table.toFixed(1)}%`);
+  r.push(`表 ${x.table.toFixed(1)}%`); }
   if(x.minus>=2) r.push(`${x.minus}日連続マイナス`);
   r.push(`前日 ${kfmt(prev(u))}`);
   return r.map(t=>`<span class="tag">${t}</span>`).join(""); }
@@ -428,7 +403,7 @@ function renderFloor(){
   const showEx=mode==="rank";
   const wIdx=mode==="day"?dayIdx-1:N-1;   // ⚠の基準日：日別なら選んだ日の前日、それ以外は最新日
   const hotHere=u=>wIdx>=0&&(U(u).diff[wIdx]??0)>=WARN;
-  f.insertAdjacentHTML("beforeend",`<div class="frow head"><span>781〜815</span><span></span><span>756〜780</span></div>`);
+  f.insertAdjacentHTML("beforeend",`<div class="frow head"><span>${HALL.headL}</span><span></span><span>${HALL.headR}</span></div>`);
   const cell=u=>{ const b=document.createElement("button"); b.type="button"; b.className="cell";
     if(!D.units[u]){ b.disabled=true; b.innerHTML=`<b>${u}</b><span>—</span>`; return b; }
     const w=hotHere(u)?badge():"";
@@ -438,9 +413,9 @@ function renderFloor(){
     b.addEventListener("click",()=>openUnit(u)); return b; };
   for(let i=n-1;i>=0;i--){ const r=document.createElement("div"); r.className="frow";
     r.appendChild(L[i]?cell(L[i]):document.createElement("span"));
-    const a=document.createElement("span"); a.className="aisle"; if(i===Math.floor(n/2)) a.textContent="通路"; r.appendChild(a);
+    const a=document.createElement("span"); a.className="aisle"; if(i===Math.floor(n/2)) a.textContent=HALL.aisle; r.appendChild(a);
     r.appendChild(R[i]?cell(R[i]):document.createElement("span")); f.appendChild(r); }
-  f.insertAdjacentHTML("beforeend",`<div class="counter">カウンター側</div>`);
+  f.insertAdjacentHTML("beforeend",`<div class="counter">${HALL.counter}</div>`);
   $("legLo").textContent=M.lo; $("legHi").textContent=M.hi;
   $("legBar").style.background=`linear-gradient(90deg,${css("--heat-cold")},${css("--heat-mid")},${css("--heat-hot")})`;
   $("exKey").style.display=$("exKeyLabel").style.display=showEx?"":"none";
@@ -583,12 +558,12 @@ document.querySelectorAll("#segMode button").forEach(b=>b.addEventListener("clic
 document.querySelectorAll("#segRange button").forEach(b=>b.addEventListener("click",()=>{ range=b.dataset.range; renderCharts(); }));
 
 applyTheme(); route();
-fetch("data.json",{cache:"no-cache"}).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); }).then(d=>{
+fetch(HALL.data,{cache:"no-cache"}).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); }).then(d=>{
   D=d; N=D.days.length; UNITS=Object.keys(D.units); dayIdx=N-1;
   buildStrip(); dayLabel();
   $("dayPrev").addEventListener("click",()=>setDay(dayIdx-1)); $("dayNext").addEventListener("click",()=>setDay(dayIdx+1)); $("dayOpen").addEventListener("click",openCalendar);
   const next=new Date(D.asof); next.setDate(next.getDate()+1);
-  $("subtitle").textContent=`麻生ハッピー・スマスロ③｜${fmtDate(D.asof)}までの${N}日分`;
+  $("subtitle").textContent=`${HALL.sub}｜${fmtDate(D.asof)}までの${N}日分`;
   $("bannerText").textContent=`${fmtDate(D.asof)}までのデータから出した、${next.getMonth()+1}/${next.getDate()}以降向けの順位です。新しい日のデータが入ると変わります。過去の傾向で、結果を保証するものではありません。`;
   renderAll(); route();
 }).catch(e=>{ $("bannerText").textContent="データを読み込めませんでした（"+e.message+"）。再読み込みしてください。"; });

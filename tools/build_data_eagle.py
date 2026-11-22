@@ -52,7 +52,15 @@ base = tab + .5 * nb + .5 * bw + .5 * n15 + .5 * lowg
 v3 = g + base
 v4 = base - .5 * (te.d1.reindex(units_now) > 1000).astype(float)
 prevd = te.d1.reindex(units_now)
-ex = [u for u in units_now if prevd[u] > EXCLUDE_PREV]
+# 手入力メモ(eagle/notes.json): メモの日付がデータの最終日以降なら候補から外す
+NOTES = json.loads((ROOT / "eagle/notes.json").read_text(encoding="utf-8"))
+note = {}
+for d_, m_ in NOTES.items():
+    if d_.startswith("_") or pd.Timestamp(d_) < asof: continue
+    for u_, t_ in m_.items(): note[int(u_)] = t_
+ex = [u for u in units_now if prevd[u] > EXCLUDE_PREV or u in note]
+# 直近5日に+3000枚超の日がある台(除外はしない。検証で除外すると成績が下がったため印だけ)
+mx5 = cur[cur.date > asof - pd.Timedelta(days=5)].groupby("machine")["diff"].max()
 r3 = [u for u in v3.sort_values(ascending=False).index if u not in ex]
 r4 = [u for u in v4.sort_values(ascending=False).index if u not in ex]
 
@@ -85,6 +93,7 @@ for u in units_now:
       "v4": round(float(v4[u]), 3), "rank4": (r4.index(u) + 1) if u in r4 else None,
       "excluded": u in ex, "table": round(ts[str(u)], 1), "g7": round(float(te.g7m.get(u, np.nan))) if not np.isnan(te.g7m.get(u, np.nan)) else 0,
       "minus": m, "plus": pl, "nbBest1": bool(nb[u]), "bona1": None if pd.isna(B[u].iloc[-1]) else int(B[u].iloc[-1]),
+      "exReason": note.get(u) or (f"前日{int(prevd[u]):+d}" if u in ex else None), "big5": bool(mx5.get(u, 0) > 3000), "max5": int(mx5.get(u, 0)),
       "ai": round(float(g[u]), 3), "had1500": bool(n15[u]), "g5": None if pd.isna(te.gm5.get(u)) else round(float(te.gm5[u])),
       "why": [[n, r] for n, r in why[str(u)]],
       "diff": [None if pd.isna(x) else int(x) for x in D[u]],

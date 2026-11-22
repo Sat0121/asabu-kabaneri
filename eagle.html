@@ -337,6 +337,8 @@ svg.kmap { display: block; width: 100%; height: auto; touch-action: manipulation
       <p><b>直近に+1,500枚超の台は設定4止まり？</b> 翌日の差枚は+1,500枚超があった台の方が良く（全台平均比 +141枚 対 −190枚）、加点にしています。見る日数は5〜9日で比べて5日が最良。</p>
       <p><b>直近の回転数が少ない台ほど5・6？</b> 単独では差がほぼなく、上と組み合わせると効きました。</p>
       <p><b>+1,000枚超の台を嫌う？</b> 前日+1,000〜2,000枚の台は翌日が一番悪く（全台平均比 −269枚）、5台以上用で前日+1,000枚超を減点すると、上位3台が +454→+603枚・+677→+828枚に良くなりました。1〜3台用では上位1台が下がったので入れていません。</p>
+      <p><b>直近5日に+3,000枚超の台は狙わない？</b> 除外すると成績がはっきり下がりました（5台以上用の上位5台 +449→+96枚・+504→+77枚）。前日ではなく2〜5日前に+3,000枚超を出した台は、翌日一番良いグループ（全台平均比 +264枚）でした。除外はせず、島図と理由に⚠を付けています。</p>
+      <p><b>手入力メモ</b> 実際の設定などがわかった台は <code>eagle/notes.json</code> に書くと、その日のデータが入るまで・入った翌日の予想まで候補から外します（例：11/22 55番 設定6）。</p>
       <p><b>祝日はアツい？</b> 全台平均の中央値は祝日 +167枚・平日 +35枚・土日 −143枚（祝日12日分）。土日よりは強く、明日が祝日なら上に表示します。</p>
     </div>
     <div class="block">
@@ -465,6 +467,7 @@ function drawMap(svg, opt) {
 function reasons(u) {
   const x = U(u), r = [];
   if (HALL.id === "eagle") {
+    if (x.big5 && !x.excluded) r.push(`⚠ 5日内に+3000超（最大${fmt(x.max5)}）`);
     if (x.had1500) r.push("5日内に+1500超");
     if (x.g5 != null) r.push(`5日平均 ${x.g5.toLocaleString()}G`);
     if (x.nbBest1) r.push("前日1位の隣");
@@ -517,7 +520,7 @@ function renderReco() {
   o.append(h("span", "label", "6〜10位"), mk(all.slice(5, 10), u => `${U(u)[rankKey()]}位`));
   o.append(h("span", "label", "避けたい台（下位5台）"), mk(all.slice(-5).reverse(), u => `${U(u)[rankKey()]}位`));
   const ex = UNITS.filter(u => U(u).excluded).sort((a, b) => prev(b) - prev(a));
-  o.append(h("span", "label", `狙わない台（前日+${D.excludeThreshold.toLocaleString()}枚超・${ex.length}台）`), ex.length ? mk(ex, u => `前日${kfmt(prev(u))}`) : h("p", "note", "該当なし"));
+  o.append(h("span", "label", `狙わない台（前日+${D.excludeThreshold.toLocaleString()}枚超・メモ・${ex.length}台）`), ex.length ? mk(ex, u => U(u).exReason || `前日${kfmt(prev(u))}`) : h("p", "note", "該当なし"));
 }
 function renderCtx() {
   const c = $("ctx"); c.textContent = "";
@@ -537,14 +540,14 @@ function renderNextMap() {
   const reco = RECO();
   drawMap($("map"), {
     fill: tierScore, val: u => `${U(u)[rankKey()]}位`, ex: u => U(u).excluded,
-    warn: u => prev(u) > D.excludeThreshold,
+    warn: u => prev(u) > D.excludeThreshold || !!U(u).big5,
     mark: u => { const r = reco.indexOf(u); return r >= 0 ? { rank: r + 1 } : null; },
   });
   const lg = $("legend"); lg.textContent = "";
   const li1 = h("li"); li1.append(legendMark(1), "AI Recommend 1位"); lg.appendChild(li1);
   const li2 = h("li"); li2.append(legendMark(2), "2〜5位"); lg.appendChild(li2);
   [["--h4", "狙い度 上位20%"], ["--h3", "〜45%"], ["--h2", "〜75%"], ["--h1", "下位"]].forEach(([v, t]) => { const li = h("li"); const i = h("i"); i.style.background = `var(${v})`; li.append(i, t); lg.appendChild(li); });
-  $("mapNote").textContent = `マークの数字がAI Recommendの順位、右の「○位」は候補${order().length}台の中での狙い度の順位です。⚠と斜線は前日+${D.excludeThreshold.toLocaleString()}枚超で狙わない台。台をタップすると成績が出ます。`;
+  $("mapNote").textContent = `マークの数字がAI Recommendの順位、右の「○位」は候補${order().length}台の中での狙い度の順位です。斜線は狙わない台（前日+${D.excludeThreshold.toLocaleString()}枚超・メモ）。${HALL.id === "eagle" ? "⚠は直近5日に+3,000枚超の日がある台（順位はそのまま）。" : "⚠は前日+3,000枚超。"}台をタップすると成績が出ます。`;
 }
 
 /* ---------- 過去データ ---------- */
@@ -687,7 +690,7 @@ function renderSheet() {
   if (!u) return;
   const head = h("div", "sheet-head"); head.append(h("span", "sheet-no", u), h("span", "sheet-where", where(u)));
   const x = U(u);
-  if (x.excluded) head.append(h("span", "tag out", "明日は狙わない"));
+  if (x.excluded) head.append(h("span", "tag out", "明日は狙わない" + (x.exReason ? `・${x.exReason}` : "")));
   else head.append(h("span", "tag", `狙い度 ${x[rankKey()]}位`));
   const rr = RECO().indexOf(u); if (rr >= 0) head.append(h("span", "tag", `AI Recommend ${rr + 1}位`));
   const close = h("button", "", "×"); close.id = "sheetClose"; close.type = "button"; close.setAttribute("aria-label", "閉じる");
@@ -728,6 +731,7 @@ store.set("kb-hall", HALL.id);
 document.querySelectorAll("nav.tabs button").forEach(b => b.addEventListener("click", () => setView(b.dataset.v)));
 document.querySelectorAll("#modelSeg button").forEach(b => b.addEventListener("click", () => { state.model = b.dataset.m; store.set("kb-model", state.model); renderAll(); }));
 document.querySelectorAll("#pastSeg button").forEach(b => b.addEventListener("click", () => { state.pastTab = b.dataset.p; renderPast(); }));
+window.addEventListener("hashchange", () => { const v = location.hash.slice(1); if (["next", "past", "about"].includes(v) && v !== state.view) setView(v, false); });
 const v0 = (location.hash || "#next").slice(1);
 setView(["next", "past", "about"].includes(v0) ? v0 : "next", false);
 fetch(HALL.data, { cache: "no-cache" }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d => {

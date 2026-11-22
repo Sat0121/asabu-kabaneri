@@ -17,7 +17,7 @@ HALLS = [
 base_css = (ROOT / "tools/vvv2_base.css.html").read_text(encoding="utf-8")
 tpl = (ROOT / "tools/kabaneri.template.html").read_text(encoding="utf-8").replace("__BASE_CSS__", base_css)
 for H in HALLS:
-    sw = "".join(f'<a href="{h["out"] if h["out"]!="index.html" else "./"}"{" aria-current=page" if h is H else ""}>{h["short"]}</a>' for h in HALLS)
+    sw = "".join(f'<a href="{h["out"] if h["out"]!="index.html" else "./?h=asabu"}"{" aria-current=page" if h is H else ""}>{h["short"]}</a>' for h in HALLS)
     html = (tpl.replace("__HALL_NAME__", H["name"]).replace("__HALL_SWITCH__", sw)
               .replace("__ABOUT__", (ROOT / "tools" / H["about"]).read_text(encoding="utf-8"))
               .replace("__HALL__", json.dumps({k: H.get(k, "") for k in ("id","data","whereL","whereR","headL","headR","top","counter","aisle","emptyL","from")}, ensure_ascii=False)))

@@ -200,8 +200,13 @@ nav.tabs button[aria-current="page"] .ind { background: var(--secondary-containe
 <style>
 /* ===== カバネリ用の追加 ===== */
 [hidden] { display: none !important; }
-.top { grid-template-columns: 1fr auto; align-items: end; }
-.top > div { display: grid; gap: 4px; min-width: 0; }
+/* アプリ(カウントツール)が差し込む戻るボタン・オフライン案内・バーの色が参照する名前 */
+:root { --md-sys-color-on-surface: var(--on-surface); --md-sys-color-surface: var(--surface); --md-sys-color-surface-container: var(--surface-c);
+  --md-sys-color-surface-container-high: var(--surface-c-high); --md-sys-color-tertiary-container: var(--tert-container); --md-sys-color-on-tertiary-container: var(--on-tert-container); }
+.top { display: flex; align-items: flex-end; gap: 12px; }
+.top > div { display: grid; gap: 4px; min-width: 0; flex: 1; }
+.top .kb-back { align-self: center; margin-left: -8px; }
+#scrim { display: none; }
 .halls { display: flex; border: 1px solid var(--outline); border-radius: 9999px; overflow: hidden; }
 .halls a { min-height: 36px; padding: 0 14px; display: grid; place-items: center; font: 500 13px var(--body); color: var(--on-surface); text-decoration: none; border-left: 1px solid var(--outline); white-space: nowrap; }
 .halls a:first-child { border-left: 0; }
@@ -253,12 +258,12 @@ svg.kmap { display: block; width: 100%; height: auto; touch-action: manipulation
 </head>
 <body>
 <main class="page" id="page">
-  <div class="top">
+  <div class="top" id="appbar">
     <div>
       <h1>Kabaneri</h1>
-      <small>クラブイーグル麻生 · 海門決戦 · <span id="range">読み込み中…</span></small>
+      <small>クラブイーグル麻生 · <span id="range">読み込み中…</span></small>
     </div>
-    <nav class="halls" aria-label="店舗"><a href="./">ハッピー</a><a href="eagle.html" aria-current=page>イーグル</a></nav>
+    <nav class="halls" aria-label="店舗"><a href="./?h=asabu">ハッピー</a><a href="eagle.html" aria-current=page>イーグル</a></nav>
   </div>
 
   <div class="seg sub" id="pastSeg" role="group" aria-label="過去データの表示" hidden>
@@ -347,6 +352,7 @@ svg.kmap { display: block; width: 100%; height: auto; touch-action: manipulation
 </main>
 
 <aside class="sheet" id="sheet" hidden aria-live="polite"></aside>
+<div id="scrim" aria-hidden="true"></div>
 
 <nav class="tabs" aria-label="画面"><div>
   <button type="button" data-v="next"><span class="ind"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".8"/></svg></span><span>明日の狙い台</span></button>
@@ -356,6 +362,7 @@ svg.kmap { display: block; width: 100%; height: auto; touch-action: manipulation
 
 <script>
 const HALL = {"id": "eagle", "data": "eagle.json", "whereL": "46〜56の島", "whereR": "57〜68の島", "headL": "46〜56の島", "headR": "57〜68の島", "top": "道路側", "counter": "中央通路側", "aisle": "", "emptyL": "←喫煙所", "from": "中央通路側から"};
+try { if (HALL.id === "asabu" && localStorage.getItem("kb-hall") === "eagle" && !/[?&]h=asabu/.test(location.search)) location.replace("eagle.html" + location.hash); } catch {}
 const NS = "http://www.w3.org/2000/svg";
 const $ = id => document.getElementById(id);
 const WD = "日月火水木金土";
@@ -676,7 +683,7 @@ function spark(u) {
 }
 function renderSheet() {
   const sh = $("sheet"), u = state.sel; sh.textContent = "";
-  sh.hidden = !u; $("page").classList.toggle("has-sheet", !!u);
+  sh.hidden = !u; sh.classList.toggle("open", !!u); $("page").classList.toggle("has-sheet", !!u);
   if (!u) return;
   const head = h("div", "sheet-head"); head.append(h("span", "sheet-no", u), h("span", "sheet-where", where(u)));
   const x = U(u);
@@ -713,6 +720,11 @@ function renderAll() {
   if (state.view === "past") renderPast();
   renderSheet();
 }
+// アプリ(カバネリ カウントツール)の戻る操作: #sheet.open のとき #scrim をクリックしてシートを閉じる
+$("scrim").addEventListener("click", () => { state.sel = null; renderAll(); });
+// 最後に見た店を覚え、トップ(麻生ハッピー)を開いたときに前回の店へ移る
+document.querySelectorAll(".halls a").forEach(a => a.addEventListener("click", () => store.set("kb-hall", a.getAttribute("href").includes("eagle") ? "eagle" : "asabu")));
+store.set("kb-hall", HALL.id);
 document.querySelectorAll("nav.tabs button").forEach(b => b.addEventListener("click", () => setView(b.dataset.v)));
 document.querySelectorAll("#modelSeg button").forEach(b => b.addEventListener("click", () => { state.model = b.dataset.m; store.set("kb-model", state.model); renderAll(); }));
 document.querySelectorAll("#pastSeg button").forEach(b => b.addEventListener("click", () => { state.pastTab = b.dataset.p; renderPast(); }));

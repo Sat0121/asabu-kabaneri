@@ -12,7 +12,7 @@ HALLS = [
   dict(id="asabu", out="index.html", data="data.json", name="麻生ハッピー", short="ハッピー", sub="麻生ハッピー・スマスロ③",
        whereL="781側の列", whereR="756側の列", headL="781〜815", headR="756〜780", counter="カウンター側", aisle="通路", about="about_asabu.html"),
   dict(id="eagle", out="eagle.html", data="eagle.json", name="クラブイーグル麻生", short="イーグル", sub="クラブイーグル麻生",
-       whereL="46〜57の列", whereR="58〜68の列", headL="46〜57", headR="58〜68", counter="島図未確認・番号順に表示", aisle="", about="about_eagle.html"),
+       whereL="46〜56の島", whereR="57〜68の島", headL="46〜56の島", headR="57〜68の島", counter="番号の小さい台を手前に表示（向きは未確認）", aisle="", about="about_eagle.html"),
 ]
 tpl = (ROOT / "tools/index.template.html").read_text(encoding="utf-8").replace("__SPRITE__", sprite)
 for H in HALLS:

@@ -54,13 +54,12 @@ r4 = [u for u in v4.sort_values(ascending=False).index if u not in ex]
 days = sorted(cur.date.unique())
 piv = lambda k: cur.pivot(index="date", columns="machine", values=k).reindex(days)
 D, G, B = piv("diff"), piv("games"), piv("bona")
-H = len(U) // 2 + len(U) % 2
 out = {
   "hall": "eagle",
   "asof": str(asof.date()),
   "days": [str(pd.Timestamp(d).date()) for d in days],
   "dayAvg": [round(v) for v in D.mean(axis=1)],
-  "columns": [U[:H], U[H:]],
+  "columns": [[u for u in U if int(u) <= 56], [u for u in U if int(u) >= 57]],  # 46〜56 と 57〜68 は別の島
   "excludeThreshold": EXCLUDE_PREV,
   "candidates": len(r3),
   "units": {}

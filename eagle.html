@@ -296,7 +296,7 @@ ul.why{margin:6px 0 12px;padding-left:20px;font-size:13px}
       <h3>この店で効いたもの・効かなかったもの</h3>
       <p>どの期間でも効いたのは「前日差枚1位の隣」（1年表で103.2%）と「前日ボーナス回数が少ない台」。麻生ハッピーで効いた「直近7日の低稼働」は、この店では逆効果でした（上位5台で −98〜+53枚）。</p>
       <h3>データの扱い</h3>
-      <p>現在の配置（46〜68番の23台）は2026年7月9日から。それより前の旧配置（134〜143・162〜173番）は機械学習の学習にだけ使っています。回転数は1万G以上の日をデータなしとして扱います。<b>島図は未確認</b>のため、番号順に2列に並べ、「隣」も番号の前後で判定しています。</p>
+      <p>現在の配置（46〜68番の23台）は2026年7月9日から。それより前の旧配置（134〜143・162〜173番）は機械学習の学習にだけ使っています。回転数は1万G以上の日をデータなしとして扱います。46〜56と57〜68は別の島として2列で表示し、「隣」は同じ島の番号の前後で判定しています（56と57は隣ではない）。</p>
     </div>
     <div class="card">
       <h2>過去日での成績</h2>
@@ -304,14 +304,14 @@ ul.why{margin:6px 0 12px;padding-left:20px;font-size:13px}
       <table class="num">
         <thead><tr><th></th><th>旧配置<br>4〜7月</th><th>7/10〜<br>9/19</th><th>9/20〜<br>11/21</th></tr></thead>
         <tbody>
-          <tr><td>1〜3台用 上位1台</td><td>+565</td><td>+1039</td><td>+1281</td></tr>
-          <tr><td>1〜3台用 上位3台</td><td>+196</td><td>+428</td><td>+729</td></tr>
-          <tr><td>5台以上用 上位3台</td><td>+359</td><td>+675</td><td>+549</td></tr>
-          <tr><td>5台以上用 上位5台</td><td>+260</td><td>+333</td><td>+421</td></tr>
+          <tr><td>1〜3台用 上位1台</td><td>+553</td><td>+844</td><td>+861</td></tr>
+          <tr><td>1〜3台用 上位3台</td><td>+145</td><td>+504</td><td>+731</td></tr>
+          <tr><td>5台以上用 上位3台</td><td>+314</td><td>+682</td><td>+577</td></tr>
+          <tr><td>5台以上用 上位5台</td><td>+278</td><td>+332</td><td>+415</td></tr>
           <tr><td>ランダム 上位5台</td><td>+23</td><td>−29</td><td>+62</td></tr>
         </tbody>
       </table>
-      <p>誤差は1台で±800枚ほどあります。1年表は検証期間の結果も含むため、実際の効き目はこれより小さめと考えてください（表を使わない「前日1位の隣＋ボーナス少」だけでも上位5台で+170〜+355枚でした）。</p>
+      <p>誤差は1台で±800枚ほどあります。1年表は検証期間の結果も含むため、実際の効き目はこれより小さめと考えてください（表を使わない「前日1位の隣＋ボーナス少」だけでも上位5台で+147〜+351枚でした）。</p>
     </div>
     <div class="card">
       <h2>データの更新</h2>
@@ -339,7 +339,7 @@ ul.why{margin:6px 0 12px;padding-left:20px;font-size:13px}
 </section>
 
 <script type="module">
-const HALL={"id": "eagle", "data": "eagle.json", "sub": "クラブイーグル麻生", "whereL": "46〜57の列", "whereR": "58〜68の列", "headL": "46〜57", "headR": "58〜68", "counter": "島図未確認・番号順に表示", "aisle": ""};
+const HALL={"id": "eagle", "data": "eagle.json", "sub": "クラブイーグル麻生", "whereL": "46〜56の島", "whereR": "57〜68の島", "headL": "46〜56の島", "headR": "57〜68の島", "counter": "番号の小さい台を手前に表示（向きは未確認）", "aisle": ""};
 import {argbFromHex,hexFromArgb,Blend,SchemeTonalSpot,Hct,MaterialDynamicColors as MDC} from "./vendor/mcu.min.js";
 const $=id=>document.getElementById(id);
 const icon=(n,c="ms")=>`<svg class="${c}" aria-hidden="true"><use href="#i-${n}"/></svg>`;

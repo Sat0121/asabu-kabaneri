@@ -1,5 +1,6 @@
 import numpy as np, pandas as pd
 LAY=pd.Timestamp('2026-07-09')
+ISLAND_BREAKS={(56,57)}  # 46〜56 と 57〜68 は別の島
 def load(path):
     df=pd.read_csv(path,parse_dates=['date'])
     df.loc[(df.games>=10000)|(df.games<=0),'games']=np.nan
@@ -28,12 +29,14 @@ def build(df, keep_next=False):
         P=D.shift(1); cols=sorted(D.columns)
         L=P[cols].shift(1,axis=1); R=P[cols].shift(-1,axis=1)
         # 番号の連続しない境界(134-143 / 162-173)では隣扱いしない
+        # 島の切れ目(番号が飛ぶ所と 56/57)では隣扱いしない
+        brk=lambda a,b: b!=a+1 or (a,b) in ISLAND_BREAKS
+        rk=P[cols].rank(axis=1,ascending=False); RL=rk.shift(1,axis=1); RR=rk.shift(-1,axis=1)
         for i,c in enumerate(cols):
-            if i>0 and cols[i-1]!=c-1: L[c]=np.nan
-            if i<len(cols)-1 and cols[i+1]!=c+1: R[c]=np.nan
+            if i>0 and brk(cols[i-1],c): L[c]=np.nan; RL[c]=np.nan
+            if i<len(cols)-1 and brk(c,cols[i+1]): R[c]=np.nan; RR[c]=np.nan
         F['nbL']=L; F['nbR']=R; F['nbmax']=np.fmax(L,R)
-        rk=P.rank(axis=1,ascending=False)
-        F['nb_best1']=((rk.shift(1,axis=1)==1)|(rk.shift(-1,axis=1)==1)).astype(float)
+        F['nb_best1']=((RL==1)|(RR==1)).astype(float)
         rel=D.sub(D.mean(axis=1),axis=0)
         F['kuse']=rel.shift(1).expanding(min_periods=10).mean()
         F['prevavg']=pd.DataFrame(np.repeat(D.mean(axis=1).shift(1).values[:,None],D.shape[1],1),index=D.index,columns=D.columns)

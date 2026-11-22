@@ -138,6 +138,8 @@ input[type=range]{flex:1;accent-color:var(--md-sys-color-primary);height:32px;ma
 .cell.ex span{font-family:var(--font-body);font-size:12px}
 .cell[aria-pressed="true"]{box-shadow:0 0 0 3px var(--md-sys-color-on-surface)}
 .cell:active{transform:scale(.97)}
+.topside{text-align:center;font-size:12px;color:var(--md-sys-color-on-surface-variant);padding:6px;border-bottom:2px solid var(--md-sys-color-outline-variant);margin-bottom:4px}
+.emptylabel{display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--md-sys-color-on-surface-variant);border:1px dashed var(--md-sys-color-outline-variant);border-radius:12px}
 .counter{text-align:center;font-size:12px;color:var(--md-sys-color-on-surface-variant);padding:6px;border-top:2px solid var(--md-sys-color-outline-variant);margin-top:4px}
 
 /* ===== グラフ ===== */
@@ -343,7 +345,7 @@ ul.why{margin:6px 0 12px;padding-left:20px;font-size:13px}
 </section>
 
 <script type="module">
-const HALL={"id": "eagle", "data": "eagle.json", "sub": "クラブイーグル麻生", "whereL": "46〜56の島", "whereR": "57〜68の島", "headL": "46〜56の島", "headR": "57〜68の島", "counter": "番号の小さい台を手前に表示（向きは未確認）", "aisle": ""};
+const HALL={"id": "eagle", "data": "eagle.json", "sub": "クラブイーグル麻生", "whereL": "46〜56の島", "whereR": "57〜68の島", "headL": "46〜56の島", "headR": "57〜68の島", "counter": "中央通路側", "aisle": "", "top": "道路側", "emptyL": "←喫煙所", "from": "中央通路側から"};
 import {argbFromHex,hexFromArgb,Blend,SchemeTonalSpot,Hct,MaterialDynamicColors as MDC} from "./vendor/mcu.min.js";
 const $=id=>document.getElementById(id);
 const icon=(n,c="ms")=>`<svg class="${c}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
@@ -391,7 +393,7 @@ const hot=u=>prev(u)>=WARN;   // 前日+3000枚以上 = 据え置き・上げは
 const badge=()=>`<span class="warnbadge" title="前日+${WARN.toLocaleString()}枚以上">${icon("warning-fill")}</span>`;
 const scoreT=u=>{ const xs=UNITS.filter(x=>!U(x).excluded).map(x=>Math.abs(sc(x))); return sc(u)/Math.max(...xs); };
 function where(u){ const [L,R]=D.columns; const i=L.indexOf(u); const j=R.indexOf(u);
-  return i>=0?`${HALL.whereL}・手前から${i+1}台目`:`${HALL.whereR}・手前から${j+1}台目`; }
+  const fr=HALL.from||"手前から"; return i>=0?`${HALL.whereL}・${fr}${i+1}台目`:`${HALL.whereR}・${fr}${j+1}台目`; }
 function order(){ return UNITS.filter(u=>!U(u).excluded).sort((a,b)=>rk(a)-rk(b)); }
 function reasons(u){ const x=U(u), r=[];
   if(HALL.id==="eagle"){
@@ -451,6 +453,7 @@ function renderFloor(){
   const showEx=mode==="rank";
   const wIdx=mode==="day"?dayIdx-1:N-1;   // ⚠の基準日：日別なら選んだ日の前日、それ以外は最新日
   const hotHere=u=>wIdx>=0&&(U(u).diff[wIdx]??0)>=WARN;
+  if(HALL.top) f.insertAdjacentHTML("beforeend",`<div class="topside">${HALL.top}</div>`);
   f.insertAdjacentHTML("beforeend",`<div class="frow head"><span>${HALL.headL}</span><span></span><span>${HALL.headR}</span></div>`);
   const cell=u=>{ const b=document.createElement("button"); b.type="button"; b.className="cell";
     if(!D.units[u]){ b.disabled=true; b.innerHTML=`<b>${u}</b><span>—</span>`; return b; }
@@ -460,7 +463,7 @@ function renderFloor(){
     b.setAttribute("aria-pressed",sel===u?"true":"false"); b.setAttribute("aria-label",`${u}番 ${b.textContent.slice(String(u).length)}${hotHere(u)?" 危険：前日+"+WARN+"枚以上":""}`);
     b.addEventListener("click",()=>openUnit(u)); return b; };
   for(let i=n-1;i>=0;i--){ const r=document.createElement("div"); r.className="frow";
-    r.appendChild(L[i]?cell(L[i]):document.createElement("span"));
+    r.appendChild(L[i]?cell(L[i]):Object.assign(document.createElement("span"),HALL.emptyL?{className:"emptylabel",textContent:HALL.emptyL}:{}));
     const a=document.createElement("span"); a.className="aisle"; if(i===Math.floor(n/2)) a.textContent=HALL.aisle; r.appendChild(a);
     r.appendChild(R[i]?cell(R[i]):document.createElement("span")); f.appendChild(r); }
   f.insertAdjacentHTML("beforeend",`<div class="counter">${HALL.counter}</div>`);

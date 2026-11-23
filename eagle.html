@@ -200,6 +200,7 @@ nav.tabs button[aria-current="page"] .ind { background: var(--secondary-containe
 <style>
 /* ===== カバネリ用の追加 ===== */
 [hidden] { display: none !important; }
+.offline { background: var(--tert-container); color: var(--on-tert-container); border-radius: 16px; padding: 10px 14px; font-size: 13px; line-height: 1.5; }
 /* アプリ(カウントツール)が差し込む戻るボタン・オフライン案内・バーの色が参照する名前 */
 :root { --md-sys-color-on-surface: var(--on-surface); --md-sys-color-surface: var(--surface); --md-sys-color-surface-container: var(--surface-c);
   --md-sys-color-surface-container-high: var(--surface-c-high); --md-sys-color-tertiary-container: var(--tert-container); --md-sys-color-on-tertiary-container: var(--on-tert-container); }
@@ -271,6 +272,7 @@ svg.kmap { display: block; width: 100%; height: auto; touch-action: manipulation
     <nav class="halls" aria-label="店舗"><a href="./?h=asabu">ハッピー</a><a href="eagle.html" aria-current=page>イーグル</a></nav>
   </div>
 
+  <div class="offline" id="offline" role="status" hidden></div>
   <div class="seg sub" id="pastSeg" role="group" aria-label="過去データの表示" hidden>
     <button type="button" data-p="map">マップ</button>
     <button type="button" data-p="units">台</button>
@@ -739,10 +741,31 @@ document.querySelectorAll("#pastSeg button").forEach(b => b.addEventListener("cl
 window.addEventListener("hashchange", () => { const v = location.hash.slice(1); if (["next", "past", "about"].includes(v) && v !== state.view) setView(v, false); });
 const v0 = (location.hash || "#next").slice(1);
 setView(["next", "past", "about"].includes(v0) ? v0 : "next", false);
-fetch(HALL.data, { cache: "no-cache" }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
+// データの読み込み。通信できたら端末にも保存し、できないときは最後に保存したものを出す
+const SAVE_KEY = "kb-data-" + HALL.id;
+function start(d, savedAt) {
   D = d; N = D.days.length; UNITS = Object.keys(D.units); PAST = D.past || []; PASTIDX = new Map(PAST.map(p => [p.d, p])); state.day = N - 1;
   $("range").textContent = `${UNITS.length}台 · ${md(D.days[0])}〜${md(D.asof)}（${N}日）`;
+  const ob = $("offline");
+  if (savedAt) { const t = new Date(savedAt); ob.textContent = `通信できないため、${t.getMonth() + 1}/${t.getDate()} ${t.getHours()}:${String(t.getMinutes()).padStart(2, "0")} に取得した内容を表示しています。通信できるようになると最新に切り替わります。`; ob.hidden = false; }
+  else ob.hidden = true;
   renderAll();
-}).catch(e => { $("range").textContent = "データを読み込めませんでした（" + e.message + "）"; });
+}
+fetch(HALL.data, { cache: "no-cache" }).then(async r => {
+  if (!r.ok) throw new Error(r.status);
+  const d = await r.json();
+  if (r.headers.get("X-KB-Offline")) {  // 通信できず、端末に残っていた分が返ってきた
+    let at = null; try { at = JSON.parse(localStorage.getItem(SAVE_KEY))?.at; } catch {}
+    return start(d, at || Date.now());
+  }
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify({ at: Date.now(), d })); } catch {}
+  start(d, null);
+}).catch(e => {
+  let saved = null; try { saved = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch {}
+  if (saved && saved.d) start(saved.d, saved.at);
+  else $("range").textContent = "データを読み込めませんでした（通信できず、保存済みのデータもありません）";
+});
+// ページとデータを端末に残す(オフラインでも前回の内容を開けるように)
+if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {})); }
 </script>
 </body></html>

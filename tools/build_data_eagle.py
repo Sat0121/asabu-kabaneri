@@ -79,7 +79,7 @@ out = {
   "asof": str(asof.date()),
   "days": [str(pd.Timestamp(d).date()) for d in days],
   "dayAvg": [round(v) for v in D.mean(axis=1)],
-  "columns": [[u for u in U if int(u) <= 56], [u for u in U if int(u) >= 57]],  # 46〜56 と 57〜68 は別の島
+  "columns": [[u for u in U if int(u) <= 56], [u for u in U if int(u) >= 57][::-1]],  # 46〜56 と 57〜68 は別の島。各列は中央通路側から順(46〜56は46が、57〜68は68が中央通路側)
   "excludeThreshold": EXCLUDE_PREV,
   "candidates": len(r3),
   "holidays": HOL,

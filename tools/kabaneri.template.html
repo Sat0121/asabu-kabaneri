@@ -171,7 +171,9 @@ const prev = u => U(u).diff[N - 1];
 const sum = a => a.reduce((x, y) => x + (y ?? 0), 0);
 const dayAvg = i => D.dayAvg[i];
 function where(u) {
-  const [L, R] = D.columns, i = L.indexOf(u), j = R.indexOf(u);
+  // 列の要素: 台番号 / null(空き) / "#ラベル"(他機種など)。位置はカバネリの台だけで数える
+  const real = c => c.filter(x => x && x[0] !== "#");
+  const [L, R] = D.columns.map(real), i = L.indexOf(u), j = R.indexOf(u);
   return i >= 0 ? `${HALL.whereL}・${HALL.from}${i + 1}台目` : `${HALL.whereR}・${HALL.from}${j + 1}台目`;
 }
 function nextDate() { const t = new Date(D.asof + "T00:00:00"); t.setDate(t.getDate() + 1); return t; }
@@ -238,9 +240,12 @@ function drawMap(svg, opt) {
   };
   for (let i = 0; i < n; i++) {
     const y = y0 + (n - 1 - i) * (CH + GAP);
-    if (L[i]) cell(L[i], 0, y);
-    else if (HALL.emptyL) { el("rect", { class: "empty", x: 1, y: y + 1, width: CW - 2, height: CH - 2, rx: 10 }, svg); el("text", { class: "empty-label", x: CW / 2, y: y + CH / 2 }, svg).textContent = HALL.emptyL; }
-    if (R[i]) cell(R[i], W - CW, y);
+    const ph = (x, label) => { el("rect", { class: "empty", x: x + 1, y: y + 1, width: CW - 2, height: CH - 2, rx: 10 }, svg); el("text", { class: "empty-label", x: x + CW / 2, y: y + CH / 2 }, svg).textContent = label; };
+    if (L[i] && L[i][0] === "#") ph(0, L[i].slice(1));
+    else if (L[i]) cell(L[i], 0, y);
+    else if (HALL.emptyL && i >= L.length) ph(0, HALL.emptyL);
+    if (R[i] && R[i][0] === "#") ph(W - CW, R[i].slice(1));
+    else if (R[i]) cell(R[i], W - CW, y);
   }
   const by = y0 + n * (CH + GAP) + 2;
   el("line", { class: "side-line", x1: 0, x2: W, y1: by, y2: by }, svg);

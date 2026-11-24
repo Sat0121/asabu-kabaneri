@@ -332,7 +332,7 @@ svg.kmap { display: block; width: 100%; height: auto; touch-action: manipulation
         <li><b>照準マーク</b> AI Recommendの台。数字が順位（明日は白、過去データは緑）</li>
         <li><b>色の濃さ</b> 明日は狙い度（緑）、過去データはその日の差枚（青）</li>
         <li><b>⚠と斜線</b> 斜線は狙わない台（前日+3,000枚超）、⚠は直近5日に+3,000枚超の日がある台</li>
-        <li><b>島図は推定</b> 2列で、番号順に折り返していると仮定（右の列は上から1133→1153、左の列は下から1155→1165）。4・9は欠番</li>
+        <li><b>島図</b> 2列で番号順に折り返し。右の列は上から1133→1153で、上の1133・1135ははみ出していて向かいはSAO2。左の列は1136の向かいから下へ1165→1155。4・9は欠番</li>
       </ul>
     </div>
     <div class="block">
@@ -370,7 +370,7 @@ svg.kmap { display: block; width: 100%; height: auto; touch-action: manipulation
 </div></nav>
 
 <script>
-const HALL = {"id": "n24", "data": "n24.json", "whereL": "1155〜1165の列", "whereR": "1133〜1153の列", "headL": "1155〜1165", "headR": "1133〜1153", "top": "", "counter": "島図は推定（番号順に2列で折り返し）", "aisle": "通路", "emptyL": "", "from": "下から", "pages": {"asabu": "./?h=asabu", "eagle": "eagle.html", "n24": "n24.html"}};
+const HALL = {"id": "n24", "data": "n24.json", "whereL": "1155〜1165の列", "whereR": "1133〜1153の列", "headL": "1155〜1165", "headR": "1133〜1153", "top": "", "counter": "", "aisle": "通路", "emptyL": "", "from": "下から", "pages": {"asabu": "./?h=asabu", "eagle": "eagle.html", "n24": "n24.html"}};
 try { const last = localStorage.getItem("kb-hall"); if (HALL.id === "asabu" && last && last !== "asabu" && HALL.pages[last] && !/[?&]h=asabu/.test(location.search)) location.replace(HALL.pages[last] + location.hash); } catch {}
 const NS = "http://www.w3.org/2000/svg";
 const $ = id => document.getElementById(id);
@@ -396,7 +396,9 @@ const prev = u => U(u).diff[N - 1];
 const sum = a => a.reduce((x, y) => x + (y ?? 0), 0);
 const dayAvg = i => D.dayAvg[i];
 function where(u) {
-  const [L, R] = D.columns, i = L.indexOf(u), j = R.indexOf(u);
+  // 列の要素: 台番号 / null(空き) / "#ラベル"(他機種など)。位置はカバネリの台だけで数える
+  const real = c => c.filter(x => x && x[0] !== "#");
+  const [L, R] = D.columns.map(real), i = L.indexOf(u), j = R.indexOf(u);
   return i >= 0 ? `${HALL.whereL}・${HALL.from}${i + 1}台目` : `${HALL.whereR}・${HALL.from}${j + 1}台目`;
 }
 function nextDate() { const t = new Date(D.asof + "T00:00:00"); t.setDate(t.getDate() + 1); return t; }
@@ -463,9 +465,12 @@ function drawMap(svg, opt) {
   };
   for (let i = 0; i < n; i++) {
     const y = y0 + (n - 1 - i) * (CH + GAP);
-    if (L[i]) cell(L[i], 0, y);
-    else if (HALL.emptyL) { el("rect", { class: "empty", x: 1, y: y + 1, width: CW - 2, height: CH - 2, rx: 10 }, svg); el("text", { class: "empty-label", x: CW / 2, y: y + CH / 2 }, svg).textContent = HALL.emptyL; }
-    if (R[i]) cell(R[i], W - CW, y);
+    const ph = (x, label) => { el("rect", { class: "empty", x: x + 1, y: y + 1, width: CW - 2, height: CH - 2, rx: 10 }, svg); el("text", { class: "empty-label", x: x + CW / 2, y: y + CH / 2 }, svg).textContent = label; };
+    if (L[i] && L[i][0] === "#") ph(0, L[i].slice(1));
+    else if (L[i]) cell(L[i], 0, y);
+    else if (HALL.emptyL && i >= L.length) ph(0, HALL.emptyL);
+    if (R[i] && R[i][0] === "#") ph(W - CW, R[i].slice(1));
+    else if (R[i]) cell(R[i], W - CW, y);
   }
   const by = y0 + n * (CH + GAP) + 2;
   el("line", { class: "side-line", x1: 0, x2: W, y1: by, y2: by }, svg);

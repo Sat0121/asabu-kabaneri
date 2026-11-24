@@ -78,10 +78,8 @@ out = {
   "asof": str(asof.date()),
   "days": [str(pd.Timestamp(d).date()) for d in days],
   "dayAvg": [round(v) for v in D.mean(axis=1)],
-  # 島図(2026-11-24 聞き取り): 2列で折り返し。各列は下から順(null=空き、"#…"=他機種)。
-  # 右の列=上から1133→1153。上の1133・1135ははみ出していて、向かい(左の列)はSAO2。
-  # 左の列=1136の向かいから下へ 1165→1155(下から見ると1155→1165)。右の列は1153の下に2マス分なにもない
-  "columns": [[str(u) for u in COLS[1] if str(u) in U] + ["#SAO2", "#SAO2"], [None, None] + [str(u) for u in COLS[0][::-1] if str(u) in U]],
+  # 島図(2026-11-24 聞き取り): 各列は下から順("#…"=他機種)。右の列=上から1133→1155、左の列=下から1156→1165、その上2マス(1133・1135の向かい)はSAO2
+  "columns": [[str(u) for u in COLS[1] if str(u) in U] + ["#SAO2", "#SAO2"], [str(u) for u in COLS[0][::-1] if str(u) in U]],
   "excludeThreshold": EXCLUDE_PREV,
   "candidates": len(r3),
   "holidays": HOL,

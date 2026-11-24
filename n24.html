@@ -332,7 +332,7 @@ svg.kmap { display: block; width: 100%; height: auto; touch-action: manipulation
         <li><b>照準マーク</b> AI Recommendの台。数字が順位（明日は白、過去データは緑）</li>
         <li><b>色の濃さ</b> 明日は狙い度（緑）、過去データはその日の差枚（青）</li>
         <li><b>⚠と斜線</b> 斜線は狙わない台（前日+3,000枚超）、⚠は直近5日に+3,000枚超の日がある台</li>
-        <li><b>島図</b> 2列で番号順に折り返し。右の列は上から1133→1153で、上の1133・1135ははみ出していて向かいはSAO2。左の列は1136の向かいから下へ1165→1155。4・9は欠番</li>
+        <li><b>島図</b> 右の列は上から1133→1155。1136〜1165が折り返しで、1136の向かいが1165、1155の向かいが1156。1133・1135の向かいはSAO2。4・9は欠番</li>
       </ul>
     </div>
     <div class="block">
@@ -350,7 +350,7 @@ svg.kmap { display: block; width: 100%; height: auto; touch-action: manipulation
     </div>
     <div class="block">
       <h2 class="block-title">過去日での成績</h2>
-      <p class="note">その日より前のデータだけで学習・順位付けし、上位台の差枚がその日の全台平均を何枚上回ったか（枚/台）。4/20〜7/15・7/16〜9/30・10/1〜11/22 の順に、1〜3台用 上位1台 +711 / +548 / +400、5台以上用 上位5台 +265 / +273 / +198（ランダムは +32 / +246 / +21）。1年表は検証期間をすべて含むため、実際の効き目は小さめと考えてください（表を使わない組み合わせでは上位5台 +230枚前後）。打率は「過去データ」タブに出ています。</p>
+      <p class="note">その日より前のデータだけで学習・順位付けし、上位台の差枚がその日の全台平均を何枚上回ったか（枚/台）。4/20〜7/15・7/16〜9/30・10/1〜11/22 の順に、1〜3台用 上位1台 +839 / +1167 / +409、5台以上用 上位5台 +265 / +273 / +207（ランダムは +32 / +246 / +37）。1年表は検証期間をすべて含むため、実際の効き目は小さめと考えてください（表を使わない組み合わせでは上位5台 +230枚前後）。打率は「過去データ」タブに出ています。</p>
     </div>
     <div class="block">
       <h2 class="block-title">注意</h2>
@@ -370,7 +370,7 @@ svg.kmap { display: block; width: 100%; height: auto; touch-action: manipulation
 </div></nav>
 
 <script>
-const HALL = {"id": "n24", "data": "n24.json", "whereL": "1155〜1165の列", "whereR": "1133〜1153の列", "headL": "1155〜1165", "headR": "1133〜1153", "top": "", "counter": "", "aisle": "通路", "emptyL": "", "from": "下から", "pages": {"asabu": "./?h=asabu", "eagle": "eagle.html", "n24": "n24.html"}};
+const HALL = {"id": "n24", "data": "n24.json", "whereL": "1156〜1165の列", "whereR": "1133〜1155の列", "headL": "1156〜1165", "headR": "1133〜1155", "top": "", "counter": "", "aisle": "通路", "emptyL": "", "from": "下から", "pages": {"asabu": "./?h=asabu", "eagle": "eagle.html", "n24": "n24.html"}};
 try { const last = localStorage.getItem("kb-hall"); if (HALL.id === "asabu" && last && last !== "asabu" && HALL.pages[last] && !/[?&]h=asabu/.test(location.search)) location.replace(HALL.pages[last] + location.hash); } catch {}
 const NS = "http://www.w3.org/2000/svg";
 const $ = id => document.getElementById(id);

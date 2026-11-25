@@ -262,6 +262,20 @@ svg.kmap { display: block; width: 100%; height: auto; touch-action: manipulation
 .past-picks .row { grid-template-columns: 22px 58px minmax(0, 1fr) 72px; }
 .daybars rect { cursor: pointer; }
 .unit-list .row { grid-template-columns: 22px 52px minmax(0, 1fr) 72px; }
+/* 店のポスター（AIPOSの画像をリンクで表示。保存はしない） */
+.poster { gap: 0; padding: 0; overflow: hidden; }
+.poster summary { list-style: none; display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 20px; cursor: pointer; }
+.poster summary::-webkit-details-marker { display: none; }
+.poster summary .block-title { font-size: 16px; }
+.poster summary .label { margin-left: auto; }
+.poster summary svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; transition: transform .2s; flex: none; }
+.poster details[open] summary svg { transform: rotate(180deg); }
+.poster .pbody { display: grid; gap: 10px; padding: 0 12px 14px; }
+.poster .pbody a.pimg { display: block; border-radius: 16px; overflow: hidden; background: var(--surface-c-lowest); }
+.poster .pbody img { display: block; width: 100%; height: auto; }
+.poster .pbody .note { padding: 0 8px; }
+.poster .pbody .note a { color: var(--primary); }
+.poster > .note { padding: 16px 20px; }
 </style>
 </head>
 <body>
@@ -289,6 +303,7 @@ svg.kmap { display: block; width: 100%; height: auto; touch-action: manipulation
     </div>
     <div class="block" id="reco"></div>
     <div class="stats" id="ctx"></div>
+    <div class="block poster" id="poster" hidden></div>
     <div class="map-card"><svg id="map" class="kmap" role="img" aria-label="島図"></svg></div>
     <ul class="legend" id="legend"></ul>
     <p class="note" id="mapNote"></p>
@@ -302,6 +317,7 @@ svg.kmap { display: block; width: 100%; height: auto; touch-action: manipulation
     <div id="pastMap" class="view">
       <div class="dates" id="dates" role="group" aria-label="日付"></div>
       <div class="stats" id="dayStats"></div>
+      <div class="block poster" id="poster2" hidden></div>
       <div class="map-card"><svg id="map2" class="kmap" role="img" aria-label="この日の島図"></svg></div>
       <ul class="legend" id="legend2"></ul>
       <div class="block" id="dayPicks"></div>
@@ -561,6 +577,31 @@ function renderCtx() {
     ["前日の全台平均", fmt(D.dayAvg[N - 1]), `${md(D.asof)}`]];
   items.forEach(([l, v, s]) => { const d = h("div", "stat"); d.append(h("span", "label", l), h("b", "", v), h("small", "", s)); c.appendChild(d); });
 }
+/* ---------- 店のポスター（AIPOS ポスター情報。画像はリンクで表示） ---------- */
+let POSTERS = null;
+const isoOf = t => `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+function renderPoster(box, iso) {
+  box.textContent = "";
+  if (!POSTERS || !POSTERS.days) { box.hidden = true; return; }
+  box.hidden = false;
+  const p = (POSTERS.days[iso] || {})[HALL.id], when = `${md(iso)}（${wdOf(iso)}）`;
+  if (!p) { box.append(h("p", "note", `${when}の店のポスターは見つかりませんでした（AIPOSに未掲載）。`)); return; }
+  const det = h("details"); det.open = store.get("kb-poster-open", "0") === "1";
+  det.addEventListener("toggle", () => store.set("kb-poster-open", det.open ? "1" : "0"));
+  const sm = h("summary"); sm.append(h("h2", "block-title", "店のポスター"), h("span", "label", when));
+  sm.insertAdjacentHTML("beforeend", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>');
+  const body = h("div", "pbody");
+  p.img.forEach((u, k) => {
+    const a = h("a", "pimg"); a.href = u; a.target = "_blank"; a.rel = "noopener noreferrer";
+    const im = h("img"); im.loading = "lazy"; im.referrerPolicy = "no-referrer"; im.alt = `${when}のポスター${p.img.length > 1 ? k + 1 : ""}`; im.src = u;
+    im.addEventListener("error", () => { a.replaceWith(h("p", "note", "画像を読み込めませんでした（通信できないか、掲載が終わっています）。")); });
+    a.appendChild(im); body.appendChild(a);
+  });
+  const n = h("p", "note"); n.append("出典: ");
+  const l = h("a", "", "AIPOS ポスター情報"); l.href = p.post; l.target = "_blank"; l.rel = "noopener noreferrer";
+  n.append(l, "（画像は保存せず、リンクで表示しています）"); body.appendChild(n);
+  det.append(sm, body); box.appendChild(det);
+}
 function renderNextMap() {
   const reco = RECO();
   drawMap($("map"), {
@@ -687,7 +728,7 @@ function renderPast() {
   document.querySelectorAll("#pastSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.p === state.pastTab ? "true" : "false"));
   $("pastMap").hidden = state.pastTab !== "map"; $("pastUnits").hidden = state.pastTab !== "units"; $("pastDays").hidden = state.pastTab !== "days";
   renderBatting();
-  if (state.pastTab === "map") { renderDates(); renderPastMap(); }
+  if (state.pastTab === "map") { renderDates(); renderPastMap(); renderPoster($("poster2"), D.days[state.day]); }
   if (state.pastTab === "units") renderUnits();
   if (state.pastTab === "days") renderDays();
 }
@@ -743,7 +784,7 @@ function setView(v, push = true) {
 function renderAll() {
   if (!D) return;
   renderModelSeg();
-  if (state.view === "next") { renderReco(); renderCtx(); renderNextMap(); }
+  if (state.view === "next") { renderReco(); renderCtx(); renderPoster($("poster"), isoOf(nextDate())); renderNextMap(); }
   if (state.view === "past") renderPast();
   renderSheet();
 }
@@ -782,6 +823,9 @@ fetch(HALL.data, { cache: "no-cache" }).then(async r => {
   if (saved && saved.d) start(saved.d, saved.at);
   else $("range").textContent = "データを読み込めませんでした（通信できず、保存済みのデータもありません）";
 });
+// 店のポスター（失敗してもほかの表示には影響させない。端末にも保存してオフラインで前回分を出す）
+fetch("posters.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : Promise.reject(r.status)).then(p => { POSTERS = p; store.set("kb-posters", JSON.stringify(p)); })
+  .catch(() => { try { POSTERS = JSON.parse(store.get("kb-posters", "null")); } catch {} }).finally(() => renderAll());
 // ページとデータを端末に残す(オフラインでも前回の内容を開けるように)
 if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {})); }
 </script>

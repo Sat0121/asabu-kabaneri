@@ -1,8 +1,8 @@
 /* 台選び(麻生ハッピー・イーグル麻生)をオフラインでも開けるようにする。
    通信できるときは常に最新を取りに行き(ネットワーク優先)、取れた内容を保存する。
    通信できないときは最後に保存した内容を返す。 */
-const CACHE = "kabaneri-picker-v3";  // 中身を大きく変えたら番号を上げる
-const CORE = ["./", "index.html", "eagle.html", "n24.html", "nishi.html", "data.json", "eagle.json", "n24.json", "nishi.json"];
+const CACHE = "kabaneri-picker-v4";  // 中身を大きく変えたら番号を上げる
+const CORE = ["./", "index.html", "eagle.html", "n24.html", "nishi.html", "data.json", "eagle.json", "n24.json", "nishi.json", "posters.json"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => Promise.all(CORE.map(u => c.add(new Request(u, { cache: "reload" })).catch(() => {})))).then(() => self.skipWaiting()));
 });

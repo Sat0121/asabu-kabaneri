@@ -103,3 +103,12 @@ slot-eye の台別データ（差枚・回転数）から、麻生ハッピー�
 - 狙い度：1〜3台用＝直近5日の差枚合計が少ない順。5台以上用＝それ＋0.5×連続マイナス日数の順位。前日+3000枚超は除外、直近5日に+3000枚超は⚠のみ。手入力メモは `nishi/notes.json`。
 - 検証（`nishi/ml/ml_nishi.py`、9/15〜11/24の54日、全台平均比）：1〜3台用 上位1台 +668・上位3台 +316、5台以上用 上位5台 +239、ランダム上位5台 +41。機械学習（3店まとめて学習）・二十四軒の表（`tools/picker_nishi.py`）・低稼働はランダムに勝てなかった。日数が少なく誤差は大きい。
 - 更新：CSVに追記 → `python3 tools/build_data_nishi.py` → `python3 tools/build_page.py`。
+
+## 店のポスター（posters.json）
+
+4店とも、「明日の狙い台」にその日（Recommendの対象日）の店のポスター、「過去データ」のマップに選んだ日のポスターを折りたたみで表示する。
+
+- 出典：AIPOS「ポスター情報」（https://hokkaido-aipos.com/archives/category/ポスター情報）の「札幌近郊ポスター一覧」。店名はハッピー麻生・イーグル麻生・ハッピー二十四軒・ハッピー西町（先頭の⭐は無視）。
+- 画像は保存せず、AIPOS の画像URL（aipos.s3.ap-northeast-1.amazonaws.com）をそのまま表示する。`posters.json` には日付・記事URL・画像URLだけを入れる（直近90日分）。
+- 更新：内蔵ブラウザで AIPOS のポスター情報ページを開き、`tools/aipos_posters.js` の中身を実行 → 出てきた行を `python3 tools/add_posters.py -` に渡す → push。ページの作り直しは不要（posters.json を読むだけ）。
+- 2026-10-26〜11-26 の分は 11/26 にまとめて取り込み済み。

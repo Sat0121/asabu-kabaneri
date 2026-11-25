@@ -266,11 +266,16 @@ function reasons(u) {
     if (x.big5 && !x.excluded) r.push(`⚠ 5日内に+3000超（最大${fmt(x.max5)}）`);
     if (x.g5 != null) r.push(`5日平均 ${x.g5.toLocaleString()}G`);
     if (!wide() && x.ai != null) r.push(`AI ${Math.round(x.ai * 100)}点`);
+  } else if (HALL.id === "nishi") {
+    if (x.big5 && !x.excluded) r.push(`⚠ 5日内に+3000超（最大${fmt(x.max5)}）`);
+    if (x.d5 != null) r.push(`5日合計 ${fmt(x.d5)}`);
+    if (x.minus >= 2) r.push(`${x.minus}日連続マイナス`);
+    if (x.g5 != null) r.push(`5日平均 ${x.g5.toLocaleString()}G`);
   } else {
     r.push(`7日平均 ${x.g7.toLocaleString()}G`);
     if (x.minus >= 2) r.push(`${x.minus}日連続マイナス`);
   }
-  r.push(`表 ${x.table.toFixed(1)}%`);
+  if (x.table != null) r.push(`表 ${x.table.toFixed(1)}%`);
   r.push(`前日 ${fmt(prev(u))}`);
   return r;
 }
@@ -491,7 +496,7 @@ function renderSheet() {
   const st = h("div", "stats");
   const win = x.diff.filter(v => v != null), wins = win.filter(v => v > 0).length;
   [["前日", fmt(prev(u)), prev(u) > HIT], ["7日合計", fmt(sum(x.diff.slice(-7)))], ["30日合計", fmt(sum(x.diff.slice(-30)))],
-   ["勝率", win.length ? Math.round(wins / win.length * 100) + "%" : "—"], [`+${HIT.toLocaleString()}超`, `${win.filter(v => v > HIT).length}回`], ["表の期待割", x.table.toFixed(1) + "%"]]
+   ["勝率", win.length ? Math.round(wins / win.length * 100) + "%" : "—"], [`+${HIT.toLocaleString()}超`, `${win.filter(v => v > HIT).length}回`], x.table != null ? ["表の期待割", x.table.toFixed(1) + "%"] : ["5日合計", fmt(x.d5)]]
     .forEach(([l, v, r]) => { const d = h("div", "stat"); d.append(h("span", "label", l), h("b", r ? "red" : "", v)); st.appendChild(d); });
   sh.appendChild(st);
   const tg = h("div", "tags"); reasons(u).forEach(t => tg.appendChild(h("span", "tag out", t))); sh.appendChild(tg);

@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kabaneri｜ハッピー南6条</title>
+<meta name="description" content="ハッピー南6条 カバネリ海門決戦のAI Recommendと島図。">
+<meta name="theme-color" content="#fbfbfe" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111317" media="(prefers-color-scheme: dark)">
+<style>
+/* Apple × Material You: Appleの文字組みと青1色の落ち着きに、M3の色の役割(コンテナ/面の段階)、
+   大きな角丸、アクティブインジケータ付きナビ、セグメントボタン、フィルタチップ、ボトムシート、押下時のステートレイヤーを合わせる */
+:root {
+  --primary: #0066cc; --on-primary: #ffffff; --primary-container: #d6e4ff; --on-primary-container: #001b3e;
+  --secondary-container: #dde3f0; --on-secondary-container: #151c27;
+  --surface: #fbfbfe; --surface-c-lowest: #ffffff; --surface-c-low: #f4f5fa; --surface-c: #eef0f6; --surface-c-high: #e8eaf1; --surface-c-highest: #e2e4ec;
+  --on-surface: #1b1c20; --on-surface-var: #5d606a; --outline: #c4c6d0; --outline-var: #e1e2ea;
+  --bg: var(--surface); --fg: var(--on-surface); --muted: var(--on-surface-var); --line: var(--outline-var); --hair: var(--outline-var);
+  --accent: var(--primary); --accent-soft: var(--primary-container); --red: var(--primary); --red-ink: #ffffff; --select: var(--on-surface);
+  --h4: #4f8fe0; --h4-ink: #ffffff; --h3: #c2d7f7; --h3-ink: #0d2a4d; --h2: #e6e8ef; --h2-ink: #1b1c20; --h1: #ffffff; --h1-ink: #6b6e78;
+  --none: var(--surface-c-highest); --none-ink: #8a8d97; --pill-on: var(--secondary-container); --pill-on-ink: var(--on-secondary-container);
+  --mono: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Hiragino Sans", "Yu Gothic UI", "Roboto", system-ui, sans-serif;
+  --body: var(--mono); --display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Hiragino Sans", "Yu Gothic UI", "Roboto", system-ui, sans-serif;
+  --doto: var(--display); --jp-dot: var(--display);
+  --ease: cubic-bezier(.2, 0, 0, 1);
+  --ai-ring: #1fae4b; --gamble: #e8590c; --tert-container: #ffe0cc; --on-tert-container: #3a1600;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --primary: #9fcaff; --on-primary: #003060; --primary-container: #0f4a86; --on-primary-container: #d6e4ff;
+  --secondary-container: #3b4858; --on-secondary-container: #d8e3f4;
+  --surface: #111317; --surface-c-lowest: #0c0e12; --surface-c-low: #191c20; --surface-c: #1d2024; --surface-c-high: #282a2f; --surface-c-highest: #33353a;
+  --on-surface: #e2e2e9; --on-surface-var: #c4c6d0; --outline: #8e9099; --outline-var: #44474e;
+  --red-ink: #003060;
+  --h4: #3d7fcf; --h4-ink: #ffffff; --h3: #1d3c63; --h3-ink: #d6e4ff; --h2: #2a2d33; --h2-ink: #e2e2e9; --h1: #191c20; --h1-ink: #8e9099;
+  --none: #2a2d32; --none-ink: #8e9099; --ai-ring: #34d26a; --gamble: #ff8a3d; --tert-container: #5a2a0c; --on-tert-container: #ffdcc6; color-scheme: dark;
+} }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { background: var(--surface); color: var(--on-surface); font: 400 16px/1.5 var(--body); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+button { font: inherit; color: inherit; letter-spacing: inherit; position: relative; overflow: hidden; }
+/* ステートレイヤー(M3): 押すと薄く色が乗る */
+button::after { content: ""; position: absolute; inset: 0; background: currentColor; opacity: 0; transition: opacity .2s var(--ease); pointer-events: none; border-radius: inherit; }
+@media (hover: hover) { button:hover::after { opacity: .08; } }
+button:active::after { opacity: .14; }
+:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.page { max-width: 680px; margin: 0 auto; padding-block: 16px 120px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.page.has-sheet { padding-bottom: 440px; }
+.top { display: grid; gap: 4px; margin: 12px 4px 20px; }
+h1 { margin: 0; font: 700 32px/1.15 var(--display); letter-spacing: -0.02em; }
+.top small { font: 400 14px/1.4 var(--body); color: var(--on-surface-var); }
+.label { font: 500 13px/1.35 var(--body); color: var(--on-surface-var); letter-spacing: 0; }
+.block-title { margin: 0; font: 600 20px/1.25 var(--display); letter-spacing: -0.01em; }
+section[hidden] { display: none; }
+.view { display: grid; gap: 14px; }
+.block { background: var(--surface-c-low); border-radius: 28px; padding: 20px; display: grid; gap: 14px; min-width: 0; }
+.block p { margin: 0; }
+/* 日付: フィルタチップ */
+.dates { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: 2px max(16px, env(safe-area-inset-left, 0px)); scroll-behavior: smooth; }
+.dates::-webkit-scrollbar { display: none; }
+.date { flex: none; min-width: 62px; min-height: 52px; padding: 6px 12px; border: 1px solid var(--outline); border-radius: 12px; background: transparent; display: grid; justify-items: center; line-height: 1.15; cursor: pointer; font: 600 15px var(--body); transition: background .2s var(--ease), border-color .2s var(--ease); }
+.date span { font: 400 11px var(--body); color: var(--on-surface-var); }
+.date.hot span { color: var(--primary); font-weight: 600; }
+.date.next { border-style: dashed; border-color: var(--ai-ring); }
+.date.next span { color: var(--ai-ring); font-weight: 600; }
+.date.next[aria-pressed="true"] { background: var(--ai-ring); color: #fff; border-style: solid; }
+.date.next[aria-pressed="true"] span { color: #fff; }
+.date[aria-pressed="true"] { background: var(--secondary-container); color: var(--on-secondary-container); border-color: transparent; }
+.date[aria-pressed="true"] span { color: inherit; }
+/* セグメントボタン(M3) */
+.seg { display: flex; border: 1px solid var(--outline); border-radius: 9999px; overflow: hidden; }
+.seg button { flex: 1; min-height: 40px; border: 0; border-left: 1px solid var(--outline); background: transparent; font: 500 14px var(--body); cursor: pointer; color: var(--on-surface); padding: 0 8px; transition: background .2s var(--ease); }
+.seg button:first-child { border-left: 0; }
+.seg button[aria-pressed="true"] { background: var(--secondary-container); color: var(--on-secondary-container); }
+.seg button[aria-pressed="true"]::before { content: "✓ "; font-weight: 600; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.stat { background: var(--surface-c-low); border-radius: 20px; padding: 12px 14px; display: grid; gap: 2px; min-width: 0; }
+.stat b { font: 600 clamp(20px, 5.6vw, 28px)/1.1 var(--display); letter-spacing: -0.02em; white-space: nowrap; }
+.stat b.red { color: var(--primary); }
+.map-card { background: var(--surface-c-low); border-radius: 28px; padding: 10px; }
+svg#map { display: block; width: 100%; height: auto; touch-action: manipulation; }
+.cell { cursor: pointer; }
+.cell path { stroke: var(--surface-c-low); stroke-width: 4; transition: fill .25s var(--ease); }
+.cell text { text-anchor: middle; dominant-baseline: central; pointer-events: none; font-family: var(--body); }
+.cell .no { font-size: 23px; font-weight: 600; }
+.cell .val { font-size: 21px; }
+.cell .ring { fill: none; stroke: var(--ai-ring); stroke-width: 14; display: none; pointer-events: none; }
+.cell.ai .ring.a { display: block; }
+.cell .ring.g { stroke: var(--gamble); stroke-width: 14; }
+.cell.gb .ring.g { display: block; }
+.cell.ai.gb .ring.g { stroke-width: 28; }
+.cell.sel path.base { stroke: var(--on-surface); stroke-width: 7; }
+.cell:focus { outline: none; }
+.cell:focus-visible path.base { stroke: var(--primary); stroke-width: 7; }
+.cell.dim { opacity: .18; }
+.ghost { fill: none; stroke: var(--outline); stroke-width: 2; stroke-dasharray: 2 8; stroke-linecap: round; }
+.ghost-label { fill: var(--on-surface-var); font: 400 16px var(--body); text-anchor: middle; dominant-baseline: central; }
+.pillar { fill: none; stroke: var(--outline); stroke-width: 2; stroke-dasharray: 2 6; stroke-linecap: round; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; list-style: none; margin: 0; padding: 0 6px; font: 400 12px/1.4 var(--body); color: var(--on-surface-var); }
+.legend li { display: flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 14px; border-radius: 5px; box-shadow: inset 0 0 0 1px var(--outline-var); }
+.note { margin: 0; padding: 0 6px; font: 400 13px/1.55 var(--body); color: var(--on-surface-var); }
+.block .note { padding: 0; }
+/* ボトムシート(M3) */
+.sheet { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(80px + env(safe-area-inset-bottom, 0px)); width: min(680px, 100%); z-index: 6; background: var(--surface-c-low); border-radius: 28px 28px 0 0; padding: 28px max(20px, env(safe-area-inset-right, 0px)) 16px max(20px, env(safe-area-inset-left, 0px)); display: grid; gap: 12px; max-height: 64vh; overflow-y: auto; box-shadow: 0 -2px 6px rgba(0,0,0,.06), 0 -8px 24px rgba(0,0,0,.10); animation: up .3s var(--ease); }
+.sheet::before { content: ""; position: absolute; top: 10px; left: 50%; width: 32px; height: 4px; margin-left: -16px; border-radius: 2px; background: var(--outline); }
+@keyframes up { from { transform: translate(-50%, 24px); opacity: 0; } }
+.sheet .stats { gap: 8px; }
+.sheet .stat { background: var(--surface-c-high); }
+.sheet-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; padding-right: 48px; }
+.sheet-no { font: 700 32px/1 var(--display); letter-spacing: -0.02em; }
+.sheet-where { font-size: 13px; color: var(--on-surface-var); }
+#sheetClose { position: absolute; top: 14px; right: 12px; width: 40px; height: 40px; border: 0; border-radius: 9999px; background: var(--surface-c-high); font-size: 16px; cursor: pointer; color: var(--on-surface-var); }
+.spark { display: block; width: 100%; height: auto; }
+.tag { display: inline-flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 8px; font: 500 13px var(--body); background: var(--primary-container); color: var(--on-primary-container); }
+.tag.out { background: transparent; color: var(--on-surface-var); box-shadow: inset 0 0 0 1px var(--outline); }
+.search { display: flex; gap: 8px; align-items: center; }
+.search input { flex: 1; min-width: 0; min-height: 56px; border: 0; border-radius: 28px; padding: 0 24px; background: var(--surface-c-high); color: var(--on-surface); font: 400 16px var(--body); }
+.sorts { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.sorts::-webkit-scrollbar { display: none; }
+.sorts button { flex: none; min-height: 36px; padding: 0 16px; border: 1px solid var(--outline); border-radius: 8px; background: transparent; font: 500 14px var(--body); cursor: pointer; }
+.sorts button[aria-pressed="true"] { background: var(--secondary-container); color: var(--on-secondary-container); border-color: transparent; }
+.sorts button[aria-pressed="true"]::before { content: "✓ "; }
+.rows { display: grid; gap: 2px; background: transparent; border-radius: 24px; overflow: hidden; }
+.row { display: grid; grid-template-columns: 22px 58px minmax(0, 1fr) 64px; gap: 8px; align-items: center; min-height: 60px; padding: 8px 16px; background: var(--surface-c-low); border: 0; border-radius: 6px; text-align: left; cursor: pointer; width: 100%; }
+.rows > .row:first-child { border-radius: 24px 24px 6px 6px; }
+.rows > .row:last-child { border-radius: 6px 6px 24px 24px; }
+.rows > .row:only-child { border-radius: 24px; }
+.block .rows > .row { background: var(--surface-c-lowest); }
+.row .pos { font: 400 13px var(--body); color: var(--on-surface-var); }
+.row .num { font: 600 17px var(--body); }
+.row .val { font: 600 20px/1 var(--display); letter-spacing: -0.02em; text-align: right; white-space: nowrap; }
+.row .val.red { color: var(--primary); }
+.why { font: 400 13px/1.35 var(--body); color: var(--on-surface-var); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.strip { display: block; width: 100%; height: 14px; }
+.matrix-wrap { overflow-x: auto; }
+svg#matrix { display: block; width: 100%; height: auto; }
+#matrix text { fill: var(--on-surface-var); font: 400 9px var(--body); }
+#matrix .rowhit { cursor: pointer; fill: transparent; }
+.chart { display: block; width: 100%; height: auto; }
+.chart text { fill: var(--on-surface-var); font: 400 10px var(--body); }
+.day-list .row { grid-template-columns: 82px minmax(0, 1fr) minmax(0, 1fr) 60px; }
+.day-list .hint2 { font: 400 13px var(--body); color: var(--on-surface-var); white-space: nowrap; }
+.day-list .hint2.ai { color: var(--primary); font-weight: 600; }
+h2 { margin: 0; font: 600 20px/1.25 var(--display); }
+a { color: var(--primary); }
+/* AI Recommend: プライマリコンテナのカード */
+#recoMap { background: var(--primary-container); color: var(--on-primary-container); }
+#recoMap .label, #recoMap .ai-sum { color: inherit; opacity: .85; }
+.ai-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px 10px; flex-wrap: wrap; }
+.chips { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.chip { min-height: 64px; padding: 8px 4px; border: 0; border-radius: 16px; background: var(--surface-c-lowest); cursor: pointer; display: grid; place-items: center; align-content: center; gap: 2px; line-height: 1.1; font: 600 17px var(--body); color: var(--on-surface); }
+.chip small { font: 400 12px var(--body); color: var(--on-surface-var); }
+.chips { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.chip .cno { font: 600 17px var(--body); }
+.chip.first { grid-column: 1 / -1; min-height: 76px; grid-template-columns: auto 1fr auto; place-items: center start; padding: 10px 20px; gap: 12px; box-shadow: inset 0 0 0 2px var(--ai-ring); }
+.chip.first .cno { font: 700 30px/1 var(--display); letter-spacing: -0.02em; }
+.chip.first small { font: 600 17px var(--body); justify-self: end; color: var(--on-surface); }
+.chip.first.hit small { color: inherit; }
+.chip .rank { font: 600 12px var(--body); padding: 4px 10px; border-radius: 9999px; background: var(--ai-ring); color: #fff; }
+.chip.hit { background: var(--primary); color: var(--on-primary); }
+.chip.hit small { color: inherit; opacity: .9; }
+.ai-sum { font: 400 13px/1.5 var(--body); color: var(--on-surface-var); }
+.ai-sum b { font-weight: 700; }
+.skip { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font: 400 12px var(--body); }
+.skip span { padding: 2px 8px; border-radius: 6px; background: var(--surface-c-lowest); color: var(--on-surface-var); }
+/* ナビゲーションバー(M3): アイコンの後ろにアクティブインジケータ */
+ul.plain { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: 15px; }
+#v-about p { margin: 0; font-size: 15px; line-height: 1.6; }
+#v-about b { font-weight: 600; }
+.seg.sub { margin-bottom: 14px; }
+nav.tabs button > span:last-child { white-space: nowrap; font-size: 12px; }
+.bat { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.bat > div { border-radius: 20px; padding: 14px; display: grid; gap: 4px; }
+.bat .a { background: var(--primary-container); color: var(--on-primary-container); }
+.bat .g { background: var(--tert-container); color: var(--on-tert-container); }
+.bat .t { font: 600 14px var(--body); display: flex; align-items: center; gap: 6px; }
+.bat .t i { width: 10px; height: 10px; border-radius: 3px; }
+.bat .big { font: 700 34px/1.05 var(--display); letter-spacing: -0.02em; }
+.bat .big small { font: 500 14px var(--body); margin-left: 4px; }
+.bat .sub2 { font: 400 12px/1.45 var(--body); opacity: .85; }
+#batting { margin-bottom: 14px; }
+#gambleMap { background: var(--tert-container); color: var(--on-tert-container); }
+#gambleMap .label, #gambleMap .ai-sum { color: inherit; opacity: .85; }
+#gambleMap .chip.first { box-shadow: inset 0 0 0 2px var(--gamble); }
+#gambleMap .chip .rank { background: var(--gamble); }
+#gambleMap .chip.hit { background: var(--gamble); color: #fff; }
+.chip .both { font: 500 10px var(--body); color: var(--on-surface-var); }
+.chip.hit .both { color: inherit; }
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; background: var(--surface-c); padding: 0 max(8px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(8px, env(safe-area-inset-left, 0px)); }
+nav.tabs div { max-width: 680px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); }
+nav.tabs button { height: 80px; border: 0; background: none; font: 500 12px var(--body); color: var(--on-surface-var); cursor: pointer; display: grid; place-items: center; align-content: center; gap: 4px; overflow: visible; }
+nav.tabs button::after { display: none; }
+nav.tabs .ind { width: 64px; height: 32px; border-radius: 16px; display: grid; place-items: center; transition: background .25s var(--ease); position: relative; overflow: hidden; }
+nav.tabs .ind::after { content: ""; position: absolute; inset: 0; background: currentColor; opacity: 0; transition: opacity .2s; }
+nav.tabs button:active .ind::after { opacity: .12; }
+nav.tabs button svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+nav.tabs button[aria-current="page"] { color: var(--on-surface); font-weight: 600; }
+nav.tabs button[aria-current="page"] .ind { background: var(--secondary-container); color: var(--on-secondary-container); }
+@media (min-width: 720px) { .page { padding-top: 36px; } h1 { font-size: 40px; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+<style>
+/* ===== カバネリ用の追加 ===== */
+[hidden] { display: none !important; }
+.offline { background: var(--tert-container); color: var(--on-tert-container); border-radius: 16px; padding: 10px 14px; font-size: 13px; line-height: 1.5; }
+/* アプリ(カウントツール)が差し込む戻るボタン・オフライン案内・バーの色が参照する名前 */
+:root { --md-sys-color-on-surface: var(--on-surface); --md-sys-color-surface: var(--surface); --md-sys-color-surface-container: var(--surface-c);
+  --md-sys-color-surface-container-high: var(--surface-c-high); --md-sys-color-tertiary-container: var(--tert-container); --md-sys-color-on-tertiary-container: var(--on-tert-container); }
+.top { display: flex; align-items: flex-end; gap: 12px; }
+.top > div { display: grid; gap: 4px; min-width: 0; flex: 1; }
+.top .kb-back { align-self: center; margin-left: -8px; }
+#scrim { display: none; }
+/* 店の選択(プルダウン) */
+.halls { position: relative; flex: none; display: inline-flex; align-items: center; }
+.halls select { appearance: none; -webkit-appearance: none; min-height: 40px; padding: 0 36px 0 16px; border-radius: 9999px; border: 0;
+  background: var(--secondary-container); color: var(--on-secondary-container); font: 600 14px var(--body); cursor: pointer; max-width: 46vw; text-overflow: ellipsis; }
+.halls select:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.halls svg { position: absolute; right: 12px; width: 18px; height: 18px; pointer-events: none; fill: none; stroke: var(--on-secondary-container); stroke-width: 2; }
+/* 島図 */
+svg.kmap { display: block; width: 100%; height: auto; touch-action: manipulation; }
+.kmap .cell .no { text-anchor: start; }
+.kmap .cell rect.base { stroke: var(--surface-c-low); stroke-width: 3; transition: fill .25s var(--ease); }
+.kmap .cell.sel rect.base { stroke: var(--on-surface); stroke-width: 4; }
+.kmap .cell:focus-visible rect.base { stroke: var(--primary); stroke-width: 4; }
+.kmap .cell .no { font: 600 15px var(--body); dominant-baseline: central; }
+.kmap .cell .val { font: 400 12px var(--body); dominant-baseline: central; text-anchor: end; }
+.kmap .cell.ex text { fill: var(--on-surface-var); }
+.kmap .side { fill: var(--on-surface-var); font: 500 12px var(--body); text-anchor: middle; dominant-baseline: central; }
+.kmap .side-line { stroke: var(--outline-var); stroke-width: 2; }
+.kmap .colhead { fill: var(--on-surface-var); font: 400 11px var(--body); text-anchor: middle; }
+.kmap .empty { fill: none; stroke: var(--outline); stroke-width: 1.5; stroke-dasharray: 4 5; }
+.kmap .empty-label { fill: var(--on-surface-var); font: 500 13px var(--body); text-anchor: middle; dominant-baseline: central; }
+/* AIマーク: 緑のカプセルに「照準＋順位」。明日=塗り、過去=当たり塗り/外れ白抜き */
+.aimark .cap { fill: var(--ai-ring); }
+.aimark .cap-ring { fill: none; stroke: var(--ai-ring); stroke-width: 2; }
+.aimark .tgt { fill: none; stroke: #fff; stroke-width: 1.6; }
+.aimark .tgt-dot { fill: #fff; }
+.aimark text { fill: #fff; font: 700 13px var(--body); dominant-baseline: central; text-anchor: middle; }
+/* 明日の島図: 狙い度を緑の濃さで。AIマークは白いカプセル(縁取りなし)で緑の上でも読めるように */
+:root { --g1: #e4f4e7; --g1-ink: #1b3d22; --g2: #bfe6c7; --g2-ink: #12361b; --g3: #6fc684; --g3-ink: #06290f; --g4: #1e9b47; --g4-ink: #ffffff; --ai-deep: #136b33; }
+@media (prefers-color-scheme: dark) { :root { --g1: #1b2a1f; --g1-ink: #cfe9d4; --g2: #23462c; --g2-ink: #e2f5e6; --g3: #2e7a45; --g3-ink: #ffffff; --g4: #46c46c; --g4-ink: #04210e; --ai-deep: #0f5a2a; } }
+.aimark.solid .cap { fill: #ffffff; }
+.aimark.solid .tgt { stroke: var(--ai-deep); }
+.aimark.solid .tgt-dot { fill: var(--ai-deep); }
+.aimark.solid text { fill: var(--ai-deep); }
+.aimark.miss .cap { fill: var(--surface-c-lowest); }
+.aimark.miss .tgt { stroke: var(--ai-ring); }
+.aimark.miss .tgt-dot { fill: var(--ai-ring); }
+.aimark.miss text { fill: var(--ai-ring); }
+.legend .mk { width: auto; height: auto; box-shadow: none; display: inline-flex; }
+/* AIカード */
+#reco { background: var(--primary-container); color: var(--on-primary-container); }
+#reco .label, #reco .ai-sum { color: inherit; opacity: .85; }
+.chips .chip small { white-space: nowrap; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tags .tag { height: 24px; padding: 0 8px; font-size: 12px; }
+.recolist .row { grid-template-columns: 22px 52px minmax(0, 1fr); }
+.recolist .why { white-space: normal; }
+.mini { display: flex; flex-wrap: wrap; gap: 6px; }
+.mini button { min-height: 36px; padding: 0 12px; border: 1px solid var(--outline); border-radius: 8px; background: transparent; font: 500 14px var(--body); cursor: pointer; }
+.mini button small { font-size: 11px; color: var(--on-surface-var); margin-left: 4px; }
+.stat small { font: 400 12px var(--body); color: var(--on-surface-var); }
+.bat .a2 { background: var(--secondary-container); color: var(--on-secondary-container); }
+.past-picks .row { grid-template-columns: 22px 58px minmax(0, 1fr) 72px; }
+.daybars rect { cursor: pointer; }
+.unit-list .row { grid-template-columns: 22px 52px minmax(0, 1fr) 72px; }
+/* 店のポスター（AIPOSの画像をリンクで表示。保存はしない） */
+.poster { gap: 0; padding: 0; overflow: hidden; }
+.poster summary { list-style: none; display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 20px; cursor: pointer; }
+.poster summary::-webkit-details-marker { display: none; }
+.poster summary .block-title { font-size: 16px; }
+.poster summary .label { margin-left: auto; }
+.poster summary svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; transition: transform .2s; flex: none; }
+.poster details[open] summary svg { transform: rotate(180deg); }
+.poster .pbody { display: grid; gap: 10px; padding: 0 12px 14px; }
+.poster .pbody a.pimg { display: block; border-radius: 16px; overflow: hidden; background: var(--surface-c-lowest); }
+.poster .pbody img { display: block; width: 100%; height: auto; }
+.poster .pbody .note { padding: 0 8px; }
+.poster .pbody .note a { color: var(--primary); }
+.poster > .note { padding: 16px 20px; }
+</style>
+</head>
+<body>
+<main class="page" id="page">
+  <div class="top" id="appbar">
+    <div>
+      <h1>Kabaneri</h1>
+      <small>ハッピー南6条 · <span id="range">読み込み中…</span></small>
+    </div>
+    <label class="halls"><select id="hallSel" aria-label="店舗を選ぶ"><option value="./?h=asabu" data-id="asabu">麻生ハッピー</option><option value="eagle.html" data-id="eagle">イーグル麻生</option><option value="n24.html" data-id="n24">ハッピー二十四軒</option><option value="nishi.html" data-id="nishi">ハッピー西町</option><option value="minami6.html" data-id="minami6" selected>ハッピー南6条</option></select><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></label>
+  </div>
+
+  <div class="offline" id="offline" role="status" hidden></div>
+  <div class="seg sub" id="pastSeg" role="group" aria-label="過去データの表示" hidden>
+    <button type="button" data-p="map">マップ</button>
+    <button type="button" data-p="units">台</button>
+    <button type="button" data-p="days">日付</button>
+  </div>
+
+  <!-- 明日の狙い台 -->
+  <section class="view" id="v-next">
+    <div class="seg" id="modelSeg" role="group" aria-label="打つ台数">
+      <button type="button" data-m="r3">1〜3台を打つ</button>
+      <button type="button" data-m="r4">5台以上を押さえる</button>
+    </div>
+    <div class="block" id="reco"></div>
+    <div class="stats" id="ctx"></div>
+    <div class="block poster" id="poster" hidden></div>
+    <div class="map-card"><svg id="map" class="kmap" role="img" aria-label="島図"></svg></div>
+    <ul class="legend" id="legend"></ul>
+    <p class="note" id="mapNote"></p>
+    <div class="block" id="recoWhy"></div>
+    <div class="block" id="others"></div>
+  </section>
+
+  <!-- 過去データ -->
+  <section class="view" id="v-past" hidden>
+    <div class="block" id="batting"></div>
+    <div id="pastMap" class="view">
+      <div class="dates" id="dates" role="group" aria-label="日付"></div>
+      <div class="stats" id="dayStats"></div>
+      <div class="block poster" id="poster2" hidden></div>
+      <div class="map-card"><svg id="map2" class="kmap" role="img" aria-label="この日の島図"></svg></div>
+      <ul class="legend" id="legend2"></ul>
+      <div class="block" id="dayPicks"></div>
+    </div>
+    <div id="pastUnits" class="view" hidden>
+      <div class="sorts" id="sorts" role="group" aria-label="並び順"></div>
+      <div class="rows unit-list" id="unitList"></div>
+      <p class="note">帯は左から古い日付順の差枚。濃い青は+2,000枚以上、灰色はマイナス。</p>
+    </div>
+    <div id="pastDays" class="view" hidden>
+      <div class="block">
+        <h2 class="block-title">日別の全台平均差枚</h2><span class="label">棒をタップするとその日のマップへ</span>
+        <svg class="chart daybars" id="dayChart" viewBox="0 0 360 150" role="img" aria-label="日別の全台平均差枚"></svg>
+      </div>
+      <div class="rows day-list" id="dayList"></div>
+    </div>
+  </section>
+
+  <!-- 説明 -->
+  <section class="view" id="v-about" hidden>
+    <div class="block">
+      <h2 class="block-title">AI Recommend</h2>
+      <p>翌日に出そうな台を5台選びます。この店はデータがまだ2週間ほどなので、凹んでいる台を拾う単純な決め方です。前日+3,000枚超の台は候補から外します。</p>
+    </div>
+    <div class="block">
+      <h2 class="block-title">マップの見方</h2>
+      <ul class="plain">
+        <li><b>照準マーク</b> AI Recommendの台。数字が順位（明日は白、過去データは緑）</li>
+        <li><b>色の濃さ</b> 明日は狙い度（緑）、過去データはその日の差枚（青）</li>
+        <li><b>⚠と斜線</b> 斜線は狙わない台（前日+3,000枚超）、⚠は直近5日に+3,000枚超の日がある台</li>
+        <li><b>島図（仮）</b> 麻生ハッピーと同じ2列の折り返し。右の列は下から876→1003、左の列は上から1017→1035（1003と1017が向かい合う）。実際の並びと違えば直します</li>
+      </ul>
+    </div>
+    <div class="block">
+      <h2 class="block-title">決め方（ハッピー南6条）</h2>
+      <p><b>1〜3台用</b>：直近5日の差枚合計が少ない順。</p>
+      <p><b>5台以上用</b>：上の順位に、連続マイナス日数の順位を半分の重みで足します。</p>
+      <p class="note">データが2週間しかないため、機械学習や表は使わず、ハッピー西町と同じ決め方を当てはめています。データがたまったら検証して見直します。回転数は1万G以上の日をデータなしとして扱います。</p>
+    </div>
+    <div class="block">
+      <h2 class="block-title">この店の傾向</h2>
+      <p>データが2週間（11/14〜）しかないので、傾向はまだ言えません。参考までに、全台平均の中央値は平日 +171枚・土日 −279枚（祝日は1日だけ）。</p>
+    </div>
+    <div class="block">
+      <h2 class="block-title">過去日での成績</h2>
+      <p class="note">11/19〜11/27の9日だけ。その日より前のデータだけで順位を出すと、上位台の差枚はその日の全台平均より 1〜3台用 上位3台 −474・5台以上用 上位5台 −352（枚/台）で、今のところ当たっていません。日数が少なすぎて良し悪しは判断できません。打率は「過去データ」タブに出ています。</p>
+    </div>
+    <div class="block">
+      <h2 class="block-title">注意</h2>
+      <p class="note">スロットの結果は設定以外のブレが大きく、当たらない日の方が多いです。データはみんレポから取得（11/14〜）。<a href="https://github.com/Sat0121/asabu-kabaneri">GitHub</a></p>
+    </div>
+
+  </section>
+</main>
+
+<aside class="sheet" id="sheet" hidden aria-live="polite"></aside>
+<div id="scrim" aria-hidden="true"></div>
+
+<nav class="tabs" aria-label="画面"><div>
+  <button type="button" data-v="next"><span class="ind"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".8"/></svg></span><span>明日の狙い台</span></button>
+  <button type="button" data-v="past"><span class="ind"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></span><span>過去データ</span></button>
+  <button type="button" data-v="about"><span class="ind"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg></span><span>Recommendの説明</span></button>
+</div></nav>
+
+<script>
+const HALL = {"id": "minami6", "data": "minami6.json", "whereL": "1017〜1035の列", "whereR": "876〜1003の列", "headL": "1017〜1035", "headR": "876〜1003", "top": "", "counter": "", "aisle": "通路", "emptyL": "", "from": "下から", "pages": {"asabu": "./?h=asabu", "eagle": "eagle.html", "n24": "n24.html", "nishi": "nishi.html", "minami6": "minami6.html"}};
+try { const last = localStorage.getItem("kb-hall"); if (HALL.id === "asabu" && last && last !== "asabu" && HALL.pages[last] && !/[?&]h=asabu/.test(location.search)) location.replace(HALL.pages[last] + location.hash); } catch {}
+const NS = "http://www.w3.org/2000/svg";
+const $ = id => document.getElementById(id);
+const WD = "日月火水木金土";
+const HIT = 2000;          // 「当たり」= その日+2,000枚超
+const fmt = v => v == null ? "—" : (v > 0 ? "+" : v < 0 ? "−" : "±") + Math.abs(Math.round(v)).toLocaleString("ja-JP");
+const kfmt = v => v == null ? "—" : Math.abs(v) >= 1000 ? (v > 0 ? "+" : "−") + (Math.abs(v) / 1000).toFixed(1) + "k" : fmt(v);
+const md = s => { const [, m, d] = s.split("-").map(Number); return `${m}/${d}`; };
+const wdOf = s => WD[new Date(s + "T00:00:00").getDay()];
+function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function h(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+const store = { get(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+
+let D, N, UNITS, PAST, PASTIDX;
+const state = { view: "next", model: store.get("kb-model", "r3"), pastTab: "map", day: 0, sel: null, sort: "d30" };
+const U = u => D.units[u];
+const wide = () => state.model === "r4";
+const rankKey = () => state.model === "r3" ? "rank3" : "rank4";
+const scoreKey = () => state.model === "r3" ? "v3" : "v4";
+const order = () => UNITS.filter(u => !U(u).excluded).sort((a, b) => U(a)[rankKey()] - U(b)[rankKey()]);
+const RECO = () => order().slice(0, 5);
+const prev = u => U(u).diff[N - 1];
+const sum = a => a.reduce((x, y) => x + (y ?? 0), 0);
+const dayAvg = i => D.dayAvg[i];
+function where(u) {
+  // 列の要素: 台番号 / null(空き) / "#ラベル"(他機種など)。位置はカバネリの台だけで数える
+  const real = c => c.filter(x => x && x[0] !== "#");
+  const [L, R] = D.columns.map(real), i = L.indexOf(u), j = R.indexOf(u);
+  return i >= 0 ? `${HALL.whereL}・${HALL.from}${i + 1}台目` : `${HALL.whereR}・${HALL.from}${j + 1}台目`;
+}
+function nextDate() { const t = new Date(D.asof + "T00:00:00"); t.setDate(t.getDate() + 1); return t; }
+
+/* ---------- 色 ---------- */
+const TIER = ["--h1", "--h2", "--h3", "--h4"];
+function tierScore(u) {            // 明日: 狙い度の順位で4段階
+  const o = order(), r = o.indexOf(u); if (r < 0) return 0;
+  const q = r / o.length; return q < .2 ? 3 : q < .45 ? 2 : q < .75 ? 1 : 0;
+}
+function tierDiff(v) { return v == null ? -1 : v >= 5000 ? 3 : v >= HIT ? 2 : v >= 0 ? 1 : 0; }
+const GTIER = ["--g1", "--g2", "--g3", "--g4"];
+const fillOf = (t, pal = TIER) => t < 0 ? ["var(--none)", "var(--none-ink)"] : [`var(${pal[t]})`, `var(${pal[t]}-ink)`];
+
+/* ---------- AIマーク ---------- */
+function aiMark(parent, cx, cy, rank, miss, solid) {
+  const g = el("g", { class: "aimark" + (miss ? " miss" : "") + (solid ? " solid" : "") }, parent);
+  const w = 46, hgt = 22, x = cx - w / 2, y = cy - hgt / 2;
+  el("rect", { class: "cap", x, y, width: w, height: hgt, rx: hgt / 2 }, g);
+  if (miss) el("rect", { class: "cap-ring", x, y, width: w, height: hgt, rx: hgt / 2 }, g);
+  const tx = x + 13;  // 照準
+  el("circle", { class: "tgt", cx: tx, cy, r: 6 }, g);
+  el("circle", { class: "tgt-dot", cx: tx, cy, r: 1.8 }, g);
+  el("path", { class: "tgt", d: `M${tx} ${cy - 9}v3M${tx} ${cy + 6}v3M${tx - 9} ${cy}h3M${tx + 6} ${cy}h3` }, g);
+  const t = el("text", { x: x + 32, y: cy }, g); t.textContent = rank;
+  return g;
+}
+function legendMark(rank, miss, solid) {
+  const s = el("svg", { viewBox: "0 0 52 28", width: 52, height: 28, "aria-hidden": "true" });
+  if (solid) el("rect", { x: 0, y: 0, width: 52, height: 28, rx: 8, fill: "var(--g4)" }, s);
+  aiMark(s, 26, 14, rank, miss, solid); return s;
+}
+
+/* ---------- 島図 ---------- */
+// opt: fill(u)->tier, val(u)->text, mark(u)->{rank, miss}|null, ex(u)->bool
+function drawMap(svg, opt) {
+  svg.textContent = "";
+  const [L, R] = D.columns, n = Math.max(L.length, R.length);
+  const W = 360, CW = 160, AISLE = W - 2 * CW, CH = 36, GAP = 5;
+  const top = HALL.top ? 26 : 0, headY = top + 14, y0 = headY + 12;
+  const Hgt = y0 + n * (CH + GAP) + 30;
+  svg.setAttribute("viewBox", `0 0 ${W} ${Hgt}`);
+  const defs = el("defs", {}, svg);
+  const pat = el("pattern", { id: "hatch-" + svg.id, width: 8, height: 8, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, defs);
+  el("rect", { width: 8, height: 8, fill: "var(--surface-c-high)" }, pat);
+  el("line", { x1: 0, y1: 0, x2: 0, y2: 8, stroke: "var(--outline-var)", "stroke-width": 4 }, pat);
+  if (HALL.top) { el("text", { class: "side", x: W / 2, y: 11 }, svg).textContent = HALL.top; el("line", { class: "side-line", x1: 0, x2: W, y1: top - 2, y2: top - 2 }, svg); }
+  el("text", { class: "colhead", x: CW / 2, y: headY }, svg).textContent = HALL.headL;
+  el("text", { class: "colhead", x: W - CW / 2, y: headY }, svg).textContent = HALL.headR;
+  if (HALL.aisle) el("text", { class: "side", x: W / 2, y: y0 + n * (CH + GAP) / 2, transform: `rotate(-90 ${W / 2} ${y0 + n * (CH + GAP) / 2})` }, svg).textContent = HALL.aisle;
+  const cell = (u, x, y) => {
+    const g = el("g", { class: "cell", tabindex: 0, role: "button" }, svg);
+    if (!U(u)) { el("rect", { class: "base", x, y, width: CW, height: CH, rx: 10, fill: "var(--none)" }, g); el("text", { class: "no", x: x + 12, y: y + CH / 2, fill: "var(--none-ink)" }, g).textContent = u; return; }
+    const ex = opt.ex && opt.ex(u), [bg, ink] = fillOf(ex ? -1 : opt.fill(u), opt.pal);
+    if (ex) g.classList.add("ex"); if (state.sel === u) g.classList.add("sel");
+    el("rect", { class: "base", x, y, width: CW, height: CH, rx: 10, fill: ex ? `url(#hatch-${svg.id})` : bg }, g);
+    el("text", { class: "no", x: x + 12, y: y + CH / 2, fill: ink }, g).textContent = (opt.warn && opt.warn(u) ? "⚠" : "") + u;
+    el("text", { class: "val", x: x + CW - 10, y: y + CH / 2, fill: ink }, g).textContent = ex ? "狙わない" : opt.val(u);
+    const m = opt.mark && opt.mark(u);
+    if (m) aiMark(g, x + CW * 0.55, y + CH / 2, m.rank, m.miss, opt.solid);
+    g.setAttribute("aria-label", `${u}番 ${ex ? "狙わない" : opt.val(u)}${m ? ` AI Recommend ${m.rank}位` : ""}`);
+    g.addEventListener("click", () => openSheet(u));
+    g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openSheet(u); } });
+  };
+  for (let i = 0; i < n; i++) {
+    const y = y0 + (n - 1 - i) * (CH + GAP);
+    const ph = (x, label) => { el("rect", { class: "empty", x: x + 1, y: y + 1, width: CW - 2, height: CH - 2, rx: 10 }, svg); el("text", { class: "empty-label", x: x + CW / 2, y: y + CH / 2 }, svg).textContent = label; };
+    if (L[i] && L[i][0] === "#") ph(0, L[i].slice(1));
+    else if (L[i]) cell(L[i], 0, y);
+    else if (HALL.emptyL && i >= L.length) ph(0, HALL.emptyL);
+    if (R[i] && R[i][0] === "#") ph(W - CW, R[i].slice(1));
+    else if (R[i]) cell(R[i], W - CW, y);
+  }
+  const by = y0 + n * (CH + GAP) + 2;
+  el("line", { class: "side-line", x1: 0, x2: W, y1: by, y2: by }, svg);
+  el("text", { class: "side", x: W / 2, y: by + 14 }, svg).textContent = HALL.counter;
+}
+
+/* ---------- 明日の狙い台 ---------- */
+function reasons(u) {
+  const x = U(u), r = [];
+  if (HALL.id === "eagle") {
+    if (x.big5 && !x.excluded) r.push(`⚠ 5日内に+3000超（最大${fmt(x.max5)}）`);
+    if (x.had1500) r.push("5日内に+1500超");
+    if (x.g5 != null) r.push(`5日平均 ${x.g5.toLocaleString()}G`);
+    if (x.nbBest1) r.push("前日1位の隣");
+    if (x.bona1 != null) r.push(`前日ボーナス${x.bona1}回`);
+    if (state.model === "r4" && prev(u) > 1000) r.push("前日+1000超（減点）");
+  } else if (HALL.id === "n24") {
+    if (x.big5 && !x.excluded) r.push(`⚠ 5日内に+3000超（最大${fmt(x.max5)}）`);
+    if (x.g5 != null) r.push(`5日平均 ${x.g5.toLocaleString()}G`);
+    if (!wide() && x.ai != null) r.push(`AI ${Math.round(x.ai * 100)}点`);
+  } else if (HALL.id === "nishi" || HALL.id === "minami6") {
+    if (x.big5 && !x.excluded) r.push(`⚠ 5日内に+3000超（最大${fmt(x.max5)}）`);
+    if (x.d5 != null) r.push(`5日合計 ${fmt(x.d5)}`);
+    if (x.minus >= 2) r.push(`${x.minus}日連続マイナス`);
+    if (x.g5 != null) r.push(`5日平均 ${x.g5.toLocaleString()}G`);
+  } else {
+    r.push(`7日平均 ${x.g7.toLocaleString()}G`);
+    if (x.minus >= 2) r.push(`${x.minus}日連続マイナス`);
+  }
+  if (x.table != null) r.push(`表 ${x.table.toFixed(1)}%`);
+  r.push(`前日 ${fmt(prev(u))}`);
+  return r;
+}
+function renderModelSeg() {
+  document.querySelectorAll("#modelSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === state.model ? "true" : "false"));
+}
+function renderReco() {
+  const box = $("reco"); box.textContent = "";
+  const t = nextDate(), reco = RECO();
+  const head = h("div", "ai-head"); head.append(h("h2", "block-title", "AI Recommend"), h("span", "label", `${t.getMonth() + 1}/${t.getDate()}（${WD[t.getDay()]}）向け · ${state.model === "r3" ? "1〜3台用" : "5台以上用"}`));
+  box.appendChild(head);
+  const chips = h("div", "chips");
+  reco.forEach((u, i) => {
+    const b = h("button", "chip" + (i === 0 ? " first" : "")); b.type = "button";
+    if (i === 0) { b.append(h("span", "rank", "1位"), h("span", "cno", u), h("small", "", `前日 ${fmt(prev(u))}`)); }
+    else { b.append(h("span", "cno", u), h("small", "", `${i + 1}位 · ${kfmt(prev(u))}`)); }
+    b.setAttribute("aria-label", `${i + 1}位 ${u}番 ${where(u)}`);
+    b.addEventListener("click", () => openSheet(u)); chips.appendChild(b);
+  });
+  box.appendChild(chips);
+  const nMain = state.model === "r3" ? 3 : 5;
+  box.appendChild(h("p", "ai-sum", state.model === "r3" ? "1〜3台打つなら上から順に。4・5位は控え。" : "5台を押さえる前提の順位です。"));
+  // 根拠
+  const w = $("recoWhy"); w.textContent = "";
+  w.append(h("h2", "block-title", "選んだ理由"));
+  const rows = h("div", "rows recolist");
+  reco.forEach((u, i) => {
+    const r = h("button", "row"); r.type = "button";
+    const tg = h("div", "tags"); reasons(u).forEach(t => tg.appendChild(h("span", "tag" + (/前日1位|\+1500|連続/.test(t) ? "" : " out"), t)));
+    const mid = h("div"); mid.append(h("div", "why", where(u)), tg);
+    r.append(h("span", "pos", i + 1), h("span", "num", u), mid);
+    r.addEventListener("click", () => openSheet(u)); rows.appendChild(r);
+  });
+  w.appendChild(rows);
+  // その他
+  const o = $("others"); o.textContent = "";
+  const all = order();
+  o.append(h("h2", "block-title", "6位以下と、狙わない台"));
+  const mk = (list, fn) => { const m = h("div", "mini"); list.forEach(u => { const b = h("button"); b.type = "button"; b.append(u, h("small", "", fn(u))); b.addEventListener("click", () => openSheet(u)); m.appendChild(b); }); return m; };
+  o.append(h("span", "label", "6〜10位"), mk(all.slice(5, 10), u => `${U(u)[rankKey()]}位`));
+  o.append(h("span", "label", "避けたい台（下位5台）"), mk(all.slice(-5).reverse(), u => `${U(u)[rankKey()]}位`));
+  const ex = UNITS.filter(u => U(u).excluded).sort((a, b) => prev(b) - prev(a));
+  o.append(h("span", "label", `狙わない台（前日+${D.excludeThreshold.toLocaleString()}枚超・メモ・${ex.length}台）`), ex.length ? mk(ex, u => U(u).exReason || `前日${kfmt(prev(u))}`) : h("p", "note", "該当なし"));
+}
+function renderCtx() {
+  const c = $("ctx"); c.textContent = "";
+  const t = nextDate(), td = t.getDate() % 10, wd = t.getDay();
+  const iso = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+  const avg = sum(D.dayAvg) / N, m = a => a.length ? sum(a) / a.length : avg;
+  const byTail = D.days.map((d, i) => [+d.slice(-2) % 10, D.dayAvg[i]]).filter(x => x[0] === td).map(x => x[1]);
+  const byWd = D.days.map((d, i) => [new Date(d + "T00:00:00").getDay(), D.dayAvg[i]]).filter(x => x[0] === wd).map(x => x[1]);
+  const judge = v => v > avg + 150 ? "強め" : v < avg - 150 ? "弱め" : "ふつう";
+  const hol = D.holidays && D.holidays[iso], HS = D.holStats;
+  const items = [[`末尾${td}の日`, judge(m(byTail)), `平均 ${fmt(m(byTail))}`],
+    hol && HS ? [`祝日（${hol}）`, HS["祝日"].median > HS["土日"].median + 150 ? "強め" : judge(HS["祝日"].median), `中央値 ${fmt(HS["祝日"].median)}・土日 ${fmt(HS["土日"].median)}`] : [`${WD[wd]}曜日`, judge(m(byWd)), `平均 ${fmt(m(byWd))}`],
+    ["前日の全台平均", fmt(D.dayAvg[N - 1]), `${md(D.asof)}`]];
+  items.forEach(([l, v, s]) => { const d = h("div", "stat"); d.append(h("span", "label", l), h("b", "", v), h("small", "", s)); c.appendChild(d); });
+}
+/* ---------- 店のポスター（AIPOS ポスター情報。画像はリンクで表示） ---------- */
+let POSTERS = null;
+const isoOf = t => `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+function renderPoster(box, iso) {
+  box.textContent = "";
+  if (!POSTERS || !POSTERS.days) { box.hidden = true; return; }
+  box.hidden = false;
+  const p = (POSTERS.days[iso] || {})[HALL.id], when = `${md(iso)}（${wdOf(iso)}）`;
+  if (!p) { box.append(h("p", "note", `${when}の店のポスターは見つかりませんでした（AIPOSに未掲載）。`)); return; }
+  const det = h("details"); det.open = store.get("kb-poster-open", "0") === "1";
+  det.addEventListener("toggle", () => store.set("kb-poster-open", det.open ? "1" : "0"));
+  const sm = h("summary"); sm.append(h("h2", "block-title", "店のポスター"), h("span", "label", when));
+  sm.insertAdjacentHTML("beforeend", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>');
+  const body = h("div", "pbody");
+  p.img.forEach((u, k) => {
+    const a = h("a", "pimg"); a.href = u; a.target = "_blank"; a.rel = "noopener noreferrer";
+    const im = h("img"); im.loading = "lazy"; im.referrerPolicy = "no-referrer"; im.alt = `${when}のポスター${p.img.length > 1 ? k + 1 : ""}`; im.src = u;
+    im.addEventListener("error", () => { a.replaceWith(h("p", "note", "画像を読み込めませんでした（通信できないか、掲載が終わっています）。")); });
+    a.appendChild(im); body.appendChild(a);
+  });
+  const n = h("p", "note"); n.append("出典: ");
+  const l = h("a", "", "AIPOS ポスター情報"); l.href = p.post; l.target = "_blank"; l.rel = "noopener noreferrer";
+  n.append(l, "（画像は保存せず、リンクで表示しています）"); body.appendChild(n);
+  det.append(sm, body); box.appendChild(det);
+}
+function renderNextMap() {
+  const reco = RECO();
+  drawMap($("map"), {
+    fill: tierScore, pal: GTIER, solid: true, val: u => `${U(u)[rankKey()]}位`, ex: u => U(u).excluded,
+    warn: u => prev(u) > D.excludeThreshold || !!U(u).big5,
+    mark: u => { const r = reco.indexOf(u); return r >= 0 ? { rank: r + 1 } : null; },
+  });
+  const lg = $("legend"); lg.textContent = "";
+  const li1 = h("li"); li1.append(legendMark(1, false, true), "AI Recommend（数字が順位）"); lg.appendChild(li1);
+  [["--g4", "狙い度 上位20%"], ["--g3", "〜45%"], ["--g2", "〜75%"], ["--g1", "下位"]].forEach(([v, t]) => { const li = h("li"); const i = h("i"); i.style.background = `var(${v})`; li.append(i, t); lg.appendChild(li); });
+  $("mapNote").textContent = `マークの数字がAI Recommendの順位、右の「○位」は候補${order().length}台の中での狙い度の順位です。斜線は狙わない台（前日+${D.excludeThreshold.toLocaleString()}枚超・メモ）。${HALL.id !== "asabu" ? "⚠は直近5日に+3,000枚超の日がある台（順位はそのまま）。" : "⚠は前日+3,000枚超。"}台をタップすると成績が出ます。`;
+}
+
+/* ---------- 過去データ ---------- */
+function pastPicks(i) { const p = PASTIDX.get(D.days[i]); return p ? p[state.model] : null; }
+function batting(lastN) {
+  const res = {};
+  ["r3", "r4"].forEach(k => {
+    let n = 0, hit = 0, rel = 0, bn = 0, bh = 0, days = 0;
+    PAST.slice(-lastN).forEach(p => {
+      const i = D.days.indexOf(p.d); if (i < 0) return;
+      const vals = UNITS.map(u => U(u).diff[i]).filter(v => v != null);
+      bn += vals.length; bh += vals.filter(v => v > HIT).length; days++;
+      p[k].forEach(u => { const v = U(u) && U(u).diff[i]; if (v == null) return; n++; if (v > HIT) hit++; rel += v - D.dayAvg[i]; });
+    });
+    res[k] = { rate: n ? hit / n : 0, base: bn ? bh / bn : 0, rel: n ? rel / n : 0, days, perDay: days ? hit / days : 0 };
+  });
+  return res;
+}
+function renderBatting() {
+  const b = $("batting"); b.textContent = "";
+  const head = h("div", "ai-head"); head.append(h("h2", "block-title", "AI Recommendの打率"), h("span", "label", `+${HIT.toLocaleString()}枚超えを当たりとして`));
+  b.appendChild(head);
+  const grid = h("div", "bat");
+  const all = batting(9999), r30 = batting(30);
+  [["r3", "1〜3台用", "a"], ["r4", "5台以上用", "a2"]].forEach(([k, t, cls]) => {
+    const d = h("div", cls), A = all[k], R = r30[k];
+    const tt = h("span", "t", t);
+    const big = h("span", "big", (A.rate * 100).toFixed(1)); big.appendChild(h("small", "", "%"));
+    d.append(tt, big, h("span", "sub2", `全台平均 ${(A.base * 100).toFixed(1)}% · 平均比 ${fmt(A.rel)}枚/台 · ${A.days}日`), h("span", "sub2", `直近30日 ${(R.rate * 100).toFixed(1)}%（全台 ${(R.base * 100).toFixed(1)}%）`));
+    grid.appendChild(d);
+  });
+  b.appendChild(grid);
+  b.appendChild(h("p", "note", "過去の推奨は、その日より前のデータだけで出した順位（当日に見た場合と同じ）。上位5台で集計しています。"));
+}
+function renderDates() {
+  const box = $("dates"); box.textContent = "";
+  D.days.forEach((d, i) => {
+    const b = h("button", "date" + (D.dayAvg[i] >= 500 ? " hot" : "")); b.type = "button";
+    b.append(md(d), h("span", "", `${wdOf(d)} ${kfmt(D.dayAvg[i])}`));
+    b.setAttribute("aria-pressed", i === state.day ? "true" : "false");
+    b.addEventListener("click", () => { state.day = i; renderPast(); });
+    box.appendChild(b);
+  });
+  requestAnimationFrame(() => { const s = box.children[state.day]; if (s) box.scrollLeft = state.day === N - 1 ? box.scrollWidth : s.offsetLeft - box.clientWidth / 2 + s.offsetWidth / 2; });
+}
+function renderPastMap() {
+  const i = state.day, picks = pastPicks(i) || [];
+  const st = $("dayStats"); st.textContent = "";
+  const vals = UNITS.map(u => U(u).diff[i]).filter(v => v != null), gs = UNITS.map(u => U(u).g[i]).filter(v => v != null);
+  const hits = picks.filter(u => (U(u)?.diff[i] ?? -1e9) > HIT).length;
+  [["全台平均", fmt(D.dayAvg[i]), D.dayAvg[i] >= 500], ["平均回転数", gs.length ? Math.round(sum(gs) / gs.length).toLocaleString() + "G" : "—"], ["AIの当たり", picks.length ? `${hits}/${picks.length}台` : "—", hits >= 2]]
+    .forEach(([l, v, r]) => { const d = h("div", "stat"); const b = h("b", r ? "red" : "", v); d.append(h("span", "label", l), b); st.appendChild(d); });
+  drawMap($("map2"), {
+    fill: u => tierDiff(U(u).diff[i]), val: u => kfmt(U(u).diff[i]),
+    warn: u => i > 0 && (U(u).diff[i - 1] ?? 0) > D.excludeThreshold,
+    mark: u => { const r = picks.indexOf(u); return r >= 0 ? { rank: r + 1, miss: !((U(u).diff[i] ?? -1e9) > HIT) } : null; },
+  });
+  const lg = $("legend2"); lg.textContent = "";
+  const a = h("li"); a.append(legendMark(1), "当たり"); lg.appendChild(a);
+  const b = h("li"); b.append(legendMark(1, true), "外れ"); lg.appendChild(b);
+  [["--h4", "+5,000以上"], ["--h3", "+2,000以上"], ["--h2", "0以上"], ["--h1", "マイナス"]].forEach(([v, t]) => { const li = h("li"); const ic = h("i"); ic.style.background = `var(${v})`; li.append(ic, t); lg.appendChild(li); });
+  const dp = $("dayPicks"); dp.textContent = "";
+  dp.append(h("h2", "block-title", `${md(D.days[i])} のAI Recommend`));
+  if (!picks.length) { dp.append(h("p", "note", "この日はデータの区切り直後のため、推奨を出していません。")); return; }
+  const rows = h("div", "rows past-picks");
+  picks.forEach((u, k) => {
+    const v = U(u)?.diff[i], r = h("button", "row"); r.type = "button";
+    const val = h("span", "val" + (v > HIT ? " red" : ""), fmt(v));
+    r.append(h("span", "pos", k + 1), h("span", "num", u), h("span", "why", `${(U(u)?.g[i] ?? 0).toLocaleString()}G · 平均比 ${fmt(v - D.dayAvg[i])}`), val);
+    r.addEventListener("click", () => openSheet(u)); rows.appendChild(r);
+  });
+  dp.appendChild(rows);
+}
+function strip(u) {
+  const s = el("svg", { class: "strip", viewBox: `0 0 ${N * 4} 14`, preserveAspectRatio: "none", "aria-hidden": "true" });
+  U(u).diff.forEach((v, i) => el("rect", { x: i * 4, y: 2, width: 3, height: 10, rx: 1, fill: v == null ? "var(--none)" : `var(${TIER[Math.max(0, tierDiff(v))]})` }, s));
+  return s;
+}
+const SORTS = { d30: ["30日差枚", u => sum(U(u).diff.slice(-30))], d7: ["7日差枚", u => sum(U(u).diff.slice(-7))], prev: ["前日", u => prev(u) ?? -1e9], rank: ["狙い度", u => -(U(u)[rankKey()] ?? 99)], no: ["台番号", u => -Number(u)] };
+function renderUnits() {
+  const so = $("sorts"); so.textContent = "";
+  Object.entries(SORTS).forEach(([k, [t]]) => { const b = h("button", "", t); b.type = "button"; b.setAttribute("aria-pressed", state.sort === k ? "true" : "false"); b.addEventListener("click", () => { state.sort = k; renderUnits(); }); so.appendChild(b); });
+  const f = SORTS[state.sort][1], list = [...UNITS].sort((a, b) => f(b) - f(a));
+  const box = $("unitList"); box.textContent = "";
+  list.forEach((u, i) => {
+    const r = h("button", "row"); r.type = "button";
+    const v = state.sort === "rank" ? (U(u)[rankKey()] ? `${U(u)[rankKey()]}位` : "対象外") : state.sort === "no" ? kfmt(sum(U(u).diff.slice(-30))) : kfmt(f(u));
+    r.append(h("span", "pos", i + 1), h("span", "num", u), strip(u), h("span", "val", v));
+    r.addEventListener("click", () => openSheet(u)); box.appendChild(r);
+  });
+}
+function renderDays() {
+  const s = $("dayChart"); s.textContent = "";
+  const W = 360, H = 150, mx = Math.max(...D.dayAvg.map(Math.abs), 500), zero = 75, bw = W / N;
+  el("line", { x1: 0, x2: W, y1: zero, y2: zero, stroke: "var(--outline-var)" }, s);
+  D.dayAvg.forEach((v, i) => {
+    const hh = Math.max(Math.abs(v) / mx * 65, 1);
+    const r = el("rect", { x: i * bw + .5, y: v >= 0 ? zero - hh : zero, width: Math.max(bw - 1, 1), height: hh, rx: 1, fill: v >= 500 ? "var(--primary)" : v >= 0 ? "var(--h3)" : "var(--h2)" }, s);
+    r.addEventListener("click", () => { state.day = i; state.pastTab = "map"; renderPast(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+  });
+  [0, Math.floor(N / 2), N - 1].forEach(i => { const t = el("text", { x: i === N - 1 ? W : i * bw, y: H - 2, "text-anchor": i === N - 1 ? "end" : i === 0 ? "start" : "middle" }, s); t.textContent = md(D.days[i]); });
+  const list = $("dayList"); list.textContent = "";
+  [...D.days.keys()].reverse().forEach(i => {
+    const p = PASTIDX.get(D.days[i]), picks = p ? p[state.model] : [];
+    const hits = picks.filter(u => (U(u)?.diff[i] ?? -1e9) > HIT).length;
+    const r = h("button", "row"); r.type = "button";
+    r.append(h("span", "num", `${md(D.days[i])}（${wdOf(D.days[i])}）`), h("span", "hint2" + (hits >= 2 ? " ai" : ""), picks.length ? `AI ${hits}/${picks.length}当たり` : "AI —"), h("span", "hint2", ""), h("span", "val" + (D.dayAvg[i] >= 500 ? " red" : ""), kfmt(D.dayAvg[i])));
+    r.addEventListener("click", () => { state.day = i; state.pastTab = "map"; renderPast(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+    list.appendChild(r);
+  });
+}
+function renderPast() {
+  document.querySelectorAll("#pastSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.p === state.pastTab ? "true" : "false"));
+  $("pastMap").hidden = state.pastTab !== "map"; $("pastUnits").hidden = state.pastTab !== "units"; $("pastDays").hidden = state.pastTab !== "days";
+  renderBatting();
+  if (state.pastTab === "map") { renderDates(); renderPastMap(); renderPoster($("poster2"), D.days[state.day]); }
+  if (state.pastTab === "units") renderUnits();
+  if (state.pastTab === "days") renderDays();
+}
+
+/* ---------- 台シート ---------- */
+function spark(u) {
+  const W = 360, H = 96, zero = 66, n = Math.min(N, 40), off = N - n, mx = 12000, mn = 6000;
+  const sc = v => v >= 0 ? Math.min(v, mx) / mx * 60 : Math.max(v, -mn) / mn * 26;
+  const s = el("svg", { class: "spark", viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `${u}番の直近${n}日の差枚` });
+  el("line", { x1: 0, x2: W, y1: zero, y2: zero, stroke: "var(--line)" }, s);
+  const step = W / n, pdays = new Set(PAST.filter(p => p[state.model].includes(u)).map(p => p.d));
+  for (let k = 0; k < n; k++) {
+    const i = off + k, v = U(u).diff[i]; if (v == null) continue;
+    const hh = Math.max(Math.abs(sc(v)), 1.5), x = k * step + step / 2 - 3;
+    el("rect", { x, y: v >= 0 ? zero - hh : zero, width: 6, height: hh, rx: 2, fill: v > HIT ? "var(--primary)" : (state.view === "past" && i === state.day) ? "var(--on-surface)" : "var(--h3)" }, s);
+    if (pdays.has(D.days[i])) el("circle", { cx: x + 3, cy: 6, r: 3, fill: "var(--ai-ring)" }, s);
+  }
+  [[0, "start"], [n - 1, "end"]].forEach(([k, a]) => { const t = el("text", { x: a === "end" ? W : 0, y: H - 2, "text-anchor": a, "font-size": 9, fill: "var(--muted)" }, s); t.textContent = md(D.days[off + k]); });
+  return s;
+}
+function renderSheet() {
+  const sh = $("sheet"), u = state.sel; sh.textContent = "";
+  sh.hidden = !u; sh.classList.toggle("open", !!u); $("page").classList.toggle("has-sheet", !!u);
+  if (!u) return;
+  const head = h("div", "sheet-head"); head.append(h("span", "sheet-no", u), h("span", "sheet-where", where(u)));
+  const x = U(u);
+  if (x.excluded) head.append(h("span", "tag out", "明日は狙わない" + (x.exReason ? `・${x.exReason}` : "")));
+  else head.append(h("span", "tag", `狙い度 ${x[rankKey()]}位`));
+  const rr = RECO().indexOf(u); if (rr >= 0) head.append(h("span", "tag", `AI Recommend ${rr + 1}位`));
+  const close = h("button", "", "×"); close.id = "sheetClose"; close.type = "button"; close.setAttribute("aria-label", "閉じる");
+  close.addEventListener("click", () => { state.sel = null; renderAll(); });
+  sh.append(head, close, spark(u));
+  const st = h("div", "stats");
+  const win = x.diff.filter(v => v != null), wins = win.filter(v => v > 0).length;
+  [["前日", fmt(prev(u)), prev(u) > HIT], ["7日合計", fmt(sum(x.diff.slice(-7)))], ["30日合計", fmt(sum(x.diff.slice(-30)))],
+   ["勝率", win.length ? Math.round(wins / win.length * 100) + "%" : "—"], [`+${HIT.toLocaleString()}超`, `${win.filter(v => v > HIT).length}回`], x.table != null ? ["表の期待割", x.table.toFixed(1) + "%"] : ["5日合計", fmt(x.d5)]]
+    .forEach(([l, v, r]) => { const d = h("div", "stat"); d.append(h("span", "label", l), h("b", r ? "red" : "", v)); st.appendChild(d); });
+  sh.appendChild(st);
+  const tg = h("div", "tags"); reasons(u).forEach(t => tg.appendChild(h("span", "tag out", t))); sh.appendChild(tg);
+  sh.appendChild(h("p", "note", "緑の点はAI Recommendに入っていた日。"));
+}
+function openSheet(u) { state.sel = state.sel === u ? null : u; renderAll(); }
+
+/* ---------- 画面切り替え ---------- */
+function setView(v, push = true) {
+  state.view = v; state.sel = null;
+  ["next", "past", "about"].forEach(k => $("v-" + k).hidden = k !== v);
+  $("pastSeg").hidden = v !== "past";
+  document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.v === v ? "page" : "false"));
+  if (push) history.replaceState(null, "", "#" + v);
+  renderAll(); window.scrollTo({ top: 0 });
+}
+function renderAll() {
+  if (!D) return;
+  renderModelSeg();
+  if (state.view === "next") { renderReco(); renderCtx(); renderPoster($("poster"), isoOf(nextDate())); renderNextMap(); }
+  if (state.view === "past") renderPast();
+  renderSheet();
+}
+// アプリ(カバネリ カウントツール)の戻る操作: #sheet.open のとき #scrim をクリックしてシートを閉じる
+$("scrim").addEventListener("click", () => { state.sel = null; renderAll(); });
+// 最後に見た店を覚え、トップ(麻生ハッピー)を開いたときに前回の店へ移る
+$("hallSel").addEventListener("change", e => { const o = e.target.selectedOptions[0]; store.set("kb-hall", o.dataset.id); location.href = o.value + (location.hash || ""); });
+store.set("kb-hall", HALL.id);
+document.querySelectorAll("nav.tabs button").forEach(b => b.addEventListener("click", () => setView(b.dataset.v)));
+document.querySelectorAll("#modelSeg button").forEach(b => b.addEventListener("click", () => { state.model = b.dataset.m; store.set("kb-model", state.model); renderAll(); }));
+document.querySelectorAll("#pastSeg button").forEach(b => b.addEventListener("click", () => { state.pastTab = b.dataset.p; renderPast(); }));
+window.addEventListener("hashchange", () => { const v = location.hash.slice(1); if (["next", "past", "about"].includes(v) && v !== state.view) setView(v, false); });
+const v0 = (location.hash || "#next").slice(1);
+setView(["next", "past", "about"].includes(v0) ? v0 : "next", false);
+// データの読み込み。通信できたら端末にも保存し、できないときは最後に保存したものを出す
+const SAVE_KEY = "kb-data-" + HALL.id;
+function start(d, savedAt) {
+  D = d; N = D.days.length; UNITS = Object.keys(D.units); PAST = D.past || []; PASTIDX = new Map(PAST.map(p => [p.d, p])); state.day = N - 1;
+  $("range").textContent = `${UNITS.length}台 · ${md(D.days[0])}〜${md(D.asof)}（${N}日）`;
+  const ob = $("offline");
+  if (savedAt) { const t = new Date(savedAt); ob.textContent = `通信できないため、${t.getMonth() + 1}/${t.getDate()} ${t.getHours()}:${String(t.getMinutes()).padStart(2, "0")} に取得した内容を表示しています。通信できるようになると最新に切り替わります。`; ob.hidden = false; }
+  else ob.hidden = true;
+  renderAll();
+}
+fetch(HALL.data, { cache: "no-cache" }).then(async r => {
+  if (!r.ok) throw new Error(r.status);
+  const d = await r.json();
+  if (r.headers.get("X-KB-Offline")) {  // 通信できず、端末に残っていた分が返ってきた
+    let at = null; try { at = JSON.parse(localStorage.getItem(SAVE_KEY))?.at; } catch {}
+    return start(d, at || Date.now());
+  }
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify({ at: Date.now(), d })); } catch {}
+  start(d, null);
+}).catch(e => {
+  let saved = null; try { saved = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch {}
+  if (saved && saved.d) start(saved.d, saved.at);
+  else $("range").textContent = "データを読み込めませんでした（通信できず、保存済みのデータもありません）";
+});
+// 店のポスター（失敗してもほかの表示には影響させない。端末にも保存してオフラインで前回分を出す）
+fetch("posters.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : Promise.reject(r.status)).then(p => { POSTERS = p; store.set("kb-posters", JSON.stringify(p)); })
+  .catch(() => { try { POSTERS = JSON.parse(store.get("kb-posters", "null")); } catch {} }).finally(() => renderAll());
+// ページとデータを端末に残す(オフラインでも前回の内容を開けるように)
+if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {})); }
+</script>
+</body></html>

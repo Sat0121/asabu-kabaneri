@@ -17,6 +17,8 @@ HALLS = [
        whereL="1156〜1165の列", whereR="1133〜1155の列", headL="1156〜1165", headR="1133〜1155", top="", counter="", aisle="通路", emptyL="", **{"from": "下から"}, about="about2_n24.html"),
   dict(id="nishi", out="nishi.html", data="nishi.json", name="ハッピー西町", short="ハッピー西町",
        whereL="1157〜1165の列", whereR="1106〜1113の列", headL="1157〜1165", headR="1106〜1113", top="", counter="", aisle="通路", emptyL="", **{"from": "下から"}, about="about2_nishi.html"),
+  dict(id="minami6", out="minami6.html", data="minami6.json", name="ハッピー南6条", short="ハッピー南6条",
+       whereL="1017〜1035の列", whereR="876〜1003の列", headL="1017〜1035", headR="876〜1003", top="", counter="", aisle="通路", emptyL="", **{"from": "下から"}, about="about2_minami6.html"),
 ]
 for h in HALLS: h.setdefault("short", h["name"])
 HALLS[0]["short"] = "麻生ハッピー"; HALLS[1]["short"] = "イーグル麻生"

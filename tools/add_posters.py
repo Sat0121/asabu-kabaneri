@@ -6,7 +6,7 @@
 import sys, json, re, pathlib, datetime as dt
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "posters.json"
-HALLS = ("asabu", "eagle", "n24", "nishi")
+HALLS = ("asabu", "eagle", "n24", "nishi", "minami6")
 IMG = "https://aipos.s3.ap-northeast-1.amazonaws.com/poster/{}"
 POST = "https://hokkaido-aipos.com/archives/{}"
 src = sys.stdin if len(sys.argv) < 2 or sys.argv[1] == "-" else open(sys.argv[1], encoding="utf-8")

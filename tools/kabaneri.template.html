@@ -287,6 +287,11 @@ function reasons(u) {
     if (x.d5 != null) r.push(`5日合計 ${fmt(x.d5)}`);
     if (x.minus >= 2) r.push(`${x.minus}日連続マイナス`);
     if (x.g5 != null) r.push(`5日平均 ${x.g5.toLocaleString()}G`);
+  } else if (HALL.id === "himawari") {
+    if (x.big5 && !x.excluded) r.push(`⚠ 5日内に+3000超（最大${fmt(x.max5)}）`);
+    if (x.d3 != null) r.push(`3日合計 ${fmt(x.d3)}`);
+    if (x.minus >= 2) r.push(`${x.minus}日連続マイナス`);
+    if (x.g5 != null) r.push(`5日平均 ${x.g5.toLocaleString()}G`);
   } else {
     r.push(`7日平均 ${x.g7.toLocaleString()}G`);
     if (x.minus >= 2) r.push(`${x.minus}日連続マイナス`);

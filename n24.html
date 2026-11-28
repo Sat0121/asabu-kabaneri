@@ -285,7 +285,7 @@ svg.kmap { display: block; width: 100%; height: auto; touch-action: manipulation
       <h1>Kabaneri</h1>
       <small>ハッピー二十四軒 · <span id="range">読み込み中…</span></small>
     </div>
-    <label class="halls"><select id="hallSel" aria-label="店舗を選ぶ"><option value="./?h=asabu" data-id="asabu">麻生ハッピー</option><option value="eagle.html" data-id="eagle">イーグル麻生</option><option value="n24.html" data-id="n24" selected>ハッピー二十四軒</option><option value="nishi.html" data-id="nishi">ハッピー西町</option><option value="minami6.html" data-id="minami6">ハッピー南6条</option></select><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></label>
+    <label class="halls"><select id="hallSel" aria-label="店舗を選ぶ"><option value="./?h=asabu" data-id="asabu">麻生ハッピー</option><option value="eagle.html" data-id="eagle">イーグル麻生</option><option value="n24.html" data-id="n24" selected>ハッピー二十四軒</option><option value="nishi.html" data-id="nishi">ハッピー西町</option><option value="minami6.html" data-id="minami6">ハッピー南6条</option><option value="himawari.html" data-id="himawari">豊平ひまわり</option></select><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></label>
   </div>
 
   <div class="offline" id="offline" role="status" hidden></div>
@@ -386,7 +386,7 @@ svg.kmap { display: block; width: 100%; height: auto; touch-action: manipulation
 </div></nav>
 
 <script>
-const HALL = {"id": "n24", "data": "n24.json", "whereL": "1156〜1165の列", "whereR": "1133〜1155の列", "headL": "1156〜1165", "headR": "1133〜1155", "top": "", "counter": "", "aisle": "通路", "emptyL": "", "from": "下から", "pages": {"asabu": "./?h=asabu", "eagle": "eagle.html", "n24": "n24.html", "nishi": "nishi.html", "minami6": "minami6.html"}};
+const HALL = {"id": "n24", "data": "n24.json", "whereL": "1156〜1165の列", "whereR": "1133〜1155の列", "headL": "1156〜1165", "headR": "1133〜1155", "top": "", "counter": "", "aisle": "通路", "emptyL": "", "from": "下から", "pages": {"asabu": "./?h=asabu", "eagle": "eagle.html", "n24": "n24.html", "nishi": "nishi.html", "minami6": "minami6.html", "himawari": "himawari.html"}};
 try { const last = localStorage.getItem("kb-hall"); if (HALL.id === "asabu" && last && last !== "asabu" && HALL.pages[last] && !/[?&]h=asabu/.test(location.search)) location.replace(HALL.pages[last] + location.hash); } catch {}
 const NS = "http://www.w3.org/2000/svg";
 const $ = id => document.getElementById(id);
@@ -510,6 +510,11 @@ function reasons(u) {
   } else if (HALL.id === "nishi" || HALL.id === "minami6") {
     if (x.big5 && !x.excluded) r.push(`⚠ 5日内に+3000超（最大${fmt(x.max5)}）`);
     if (x.d5 != null) r.push(`5日合計 ${fmt(x.d5)}`);
+    if (x.minus >= 2) r.push(`${x.minus}日連続マイナス`);
+    if (x.g5 != null) r.push(`5日平均 ${x.g5.toLocaleString()}G`);
+  } else if (HALL.id === "himawari") {
+    if (x.big5 && !x.excluded) r.push(`⚠ 5日内に+3000超（最大${fmt(x.max5)}）`);
+    if (x.d3 != null) r.push(`3日合計 ${fmt(x.d3)}`);
     if (x.minus >= 2) r.push(`${x.minus}日連続マイナス`);
     if (x.g5 != null) r.push(`5日平均 ${x.g5.toLocaleString()}G`);
   } else {

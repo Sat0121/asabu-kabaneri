@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """AIPOS のポスター情報（画像URLだけ）を posters.json に追記する。画像は保存しない。
 使い方: python3 add_posters.py 行ファイル   （- なら標準入力）
-行の形（aipos_posters.js の出力）: YYYY-MM-DD 記事ID asabu=YYYYMM/ハッシュ[,…] eagle=… n24=… nishi=… minami6=…
+行の形（aipos_posters.js の出力）: YYYY-MM-DD 記事ID asabu=YYYYMM/ハッシュ[,…] eagle=… n24=… nishi=… minami6=… himawari=…
 このリポジトリで使う店だけを posters.json に入れ、同じ日付は上書きする。古い日も消さない（ツールに載っている過去データの日すべてに出すため）。"""
 import sys, json, re, pathlib, datetime as dt
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "posters.json"
-HALLS = ("asabu", "eagle", "n24", "nishi", "minami6")
+HALLS = ("asabu", "eagle", "n24", "nishi", "minami6", "himawari")
 IMG = "https://aipos.s3.ap-northeast-1.amazonaws.com/poster/{}"
 POST = "https://hokkaido-aipos.com/archives/{}"
 src = sys.stdin if len(sys.argv) < 2 or sys.argv[1] == "-" else open(sys.argv[1], encoding="utf-8")
